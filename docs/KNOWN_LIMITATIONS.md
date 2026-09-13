@@ -154,6 +154,11 @@ still tell a more comforting story:
   scalability. Large-tenant latency and load are not validated.
 - No independent penetration test, formal verification or compliance certification. Clean
   dependency and image scans are not an absence of vulnerabilities.
+- Container images are scanned weekly, not on every pull request. The Python image's
+  component-absence VEX review (`infra/scripts/image_security_gate.py`,
+  `docs/security/VEX_APPLICABILITY_REVIEW.md`) expired on 2026-09-14 and has not been renewed.
+  Until a maintainer re-reviews it or updates the base image, the weekly scan fails closed on
+  those findings.
 - Retention: short local retention affects new raw captures. Provider-side data, backups,
   logs and exported copies need separate workflows.
 

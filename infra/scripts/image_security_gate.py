@@ -82,7 +82,10 @@ def main():
     command(*scan, "--format", "json", "--output", str(raw_path), args.image)
     command(*scan, "--format", "cyclonedx", "--output", str(sbom_path), args.image)
     raw = json.loads(raw_path.read_text())
-    product = json.loads(sbom_path.read_text())["metadata"]["component"]["purl"]
+    component = json.loads(sbom_path.read_text())["metadata"]["component"]
+    # Trivy emits an OCI purl only for images with a registry digest. Locally built CI images have
+    # none, so bind the product identifier to the image ID already verified against the raw scan.
+    product = component.get("purl") or f"pkg:oci/{component.get('name', 'image')}?image_id={image_id}"
     if raw["Metadata"]["ImageID"] != image_id or image_id not in unquote(product):
         raise SystemExit("Scan/SBOM image identity mismatch; refusing VEX")
     evidence = json.loads(command(docker, "run", "--rm", "--network", "none", "--entrypoint", "python", image_id, "-c", PROBE).stdout)

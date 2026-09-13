@@ -169,10 +169,10 @@ run "github_app_credentials_are_narrowly_placed" {
   command = apply
   variables {
     deploy_services = true
-    web_origin = "https://reviewed.example.com"
+    web_origin      = "https://reviewed.example.com"
     images = {
       python = "registry.example.com/python@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-      web = "registry.example.com/web@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      web    = "registry.example.com/web@sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     }
     github_app = { enabled = true, app_id = "123", private_key_secret_id = "reviewed-github-key", webhook_secret_id = "reviewed-webhook" }
   }
@@ -185,7 +185,7 @@ run "github_app_credentials_are_narrowly_placed" {
   assert {
     condition = (toset(keys(google_secret_manager_secret_iam_member.github_app)) == toset(["api.private_key", "api.webhook", "broker.private_key"]) &&
       length(module.launcher[0].configured_secret_ids) == 0 && length(module.web[0].configured_secret_ids) == 0 &&
-      alltrue([for env in google_cloud_run_v2_job.runner[0].template[0].template[0].containers[0].env : !startswith(env.name, "TV_GITHUB_")]))
+    alltrue([for env in google_cloud_run_v2_job.runner[0].template[0].template[0].containers[0].env : !startswith(env.name, "TV_GITHUB_")]))
     error_message = "Runner, launcher and web must not receive GitHub App credential grants or mounts."
   }
 }

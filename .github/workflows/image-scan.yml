@@ -1,0 +1,48 @@
+# Weekly container vulnerability gate and SBOMs for the locked images.
+# Base-image advisories change independently of code, so this runs on a schedule (and on demand)
+# instead of blocking every pull request. A failure here needs a maintainer: update the base image,
+# or re-review docs/security/VEX_APPLICABILITY_REVIEW.md (component-absence reviews expire).
+name: Image vulnerability scan
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: image-scan
+  cancel-in-progress: true
+jobs:
+  images:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+        with: {version: '0.12.7', python-version: '3.13'}
+      - run: python3 infra/scripts/install_security_tools.py
+      - run: echo "$PWD/.local/security-bin" >> "$GITHUB_PATH"
+      - name: Build locked non-root images
+        run: |
+          docker build -f Dockerfile.python -t threatveil-python:ci .
+          docker build -f Dockerfile.web -t threatveil-web:ci .
+      - name: Container vulnerability gate
+        run: |
+          python3 infra/scripts/image_security_gate.py --image threatveil-python:ci --output-dir .local/sbom/python-gate
+          trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 threatveil-web:ci
+      - name: Produce SBOMs
+        if: always()
+        run: |
+          mkdir -p .local/sbom
+          syft threatveil-python:ci -o spdx-json=.local/sbom/python.spdx.json
+          syft threatveil-web:ci -o spdx-json=.local/sbom/web.spdx.json
+          if [ -f .local/sbom/python-gate/sqlite.cdx.json ]; then
+            python3 infra/scripts/include_native_sbom.py --sbom .local/sbom/python.spdx.json --native .local/sbom/python-gate/sqlite.cdx.json
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: security-sbom
+          path: .local/sbom/**/*.json
+          retention-days: 14

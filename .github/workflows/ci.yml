@@ -20,9 +20,10 @@ jobs:
           POSTGRES_PASSWORD: ephemeral-ci-only-not-a-production-secret
         ports: ['5432:5432']
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    # TV_LOCAL_AUTH is deliberately unset: tests enable local identity themselves, and
+    # activation-readiness tests must construct non-local settings.
     env:
       TV_ENV: test
-      TV_LOCAL_AUTH: 'true'
       TV_CI_ADMIN_URL: postgresql://postgres:ephemeral-ci-only-not-a-production-secret@127.0.0.1:5432/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -134,23 +135,8 @@ jobs:
           test "$(docker inspect threatveil-web:ci --format '{{.Config.User}}')" = '65532:65532'
       - name: Runtime compatibility and health
         run: python3 infra/scripts/smoke_images.py --python-image threatveil-python:ci --web-image threatveil-web:ci
-      - name: Container vulnerability gate
-        run: |
-          python3 infra/scripts/image_security_gate.py --image threatveil-python:ci --output-dir .local/sbom/python-gate
-          trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 threatveil-web:ci
-      - name: Produce SBOMs
-        if: always()
-        run: |
-          mkdir -p .local/sbom
-          syft threatveil-python:ci -o spdx-json=.local/sbom/python.spdx.json
-          syft threatveil-web:ci -o spdx-json=.local/sbom/web.spdx.json
-          python3 infra/scripts/include_native_sbom.py --sbom .local/sbom/python.spdx.json --native .local/sbom/python-gate/sqlite.cdx.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        if: always()
-        with:
-          name: security-sbom
-          path: .local/sbom/**/*.json
-          retention-days: 14
+      # Container CVE scanning and SBOMs run weekly in image-scan.yml: base-image advisories change
+      # independently of code and must not block unrelated pull requests.
   website:
     # threatveil.com is generated from website/src and docs/blog; the committed output must match.
     runs-on: ubuntu-24.04

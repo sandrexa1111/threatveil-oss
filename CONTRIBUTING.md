@@ -62,8 +62,9 @@ make dev-web     # terminal 2
 | `make test-terraform` | Terraform validate and mocked-provider tests | Docker |
 | `make demo` | End-to-end demonstration with signature verification | Docker |
 
-CI runs these plus secret scanning, Semgrep, osv-scanner, image builds, Trivy and the Compose
-quick start. No credentials are needed.
+CI runs these plus secret scanning, Semgrep, osv-scanner, image builds and the Compose quick start
+on every pull request. Container vulnerability scanning and SBOMs run weekly
+(`.github/workflows/image-scan.yml`). No credentials are needed.
 
 ## Branches and pull requests
 

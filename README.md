@@ -203,8 +203,9 @@ make test-terraform
 make demo          # end-to-end demonstration with signature verification
 ```
 
-CI runs all of these plus gitleaks, Semgrep, osv-scanner, Trivy, SBOM generation and the Compose
-quick start. No credentials are required.
+CI runs all of these plus gitleaks, Semgrep, osv-scanner, image builds and the Compose quick start
+on every pull request. A weekly workflow scans the container images with Trivy and produces SBOMs.
+No credentials are required.
 
 ## Security
 
