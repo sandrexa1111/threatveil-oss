@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:24-trixie-slim@sha256:50c3b2f6988dfc307b86e5301d69611af31f4789bdf232863b07d3b02fe55ae0 AS build
+FROM node:26-trixie-slim@sha256:14bf3eac4bf209d906d3c41256597d3ab1f926b2e93a79e9bdfe1efd32454239 AS build
 ENV PNPM_HOME=/pnpm PATH=/pnpm:$PATH NEXT_TELEMETRY_DISABLED=1
 RUN corepack enable && corepack prepare pnpm@11.19.0 --activate
 WORKDIR /app
@@ -15,7 +15,7 @@ RUN pnpm install --frozen-lockfile
 COPY apps/web ./apps/web
 RUN mkdir -p apps/web/public && pnpm --filter @threatveil/web build
 
-FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:774b7d020b24214835769e24c3544835526cd0288f0b094eae48e8b2c2429a79 AS runtime
+FROM gcr.io/distroless/nodejs24-debian13:nonroot@sha256:7781e8b4fccf59240bd539af6738cccf8dad4be303165c3a1fa065c48699b937 AS runtime
 # The standalone server needs Node only; this base has no shell or package manager.
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=8080 TV_LOCAL_AUTH=false
