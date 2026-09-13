@@ -1,0 +1,147 @@
+# ThreatVeil local stack: PostgreSQL 17, migrations, API and web workspace.
+#
+#   docker compose up --build                     then open http://127.0.0.1:3000
+#   docker compose --profile demo run --rm demo   canonical synthetic demonstration
+#
+# Local development with synthetic data only. Local identity is enabled, every published
+# port binds to 127.0.0.1, and the default database passwords are placeholders for a
+# database that is never published. Do not expose this stack to a network.
+name: threatveil
+
+x-python-environment: &python-environment
+  TV_ENV: local
+  TV_LOCAL_AUTH: "true"
+  TV_WEB_ORIGIN: ${TV_WEB_ORIGIN:-http://127.0.0.1:3000}
+  TV_EVIDENCE_DIR: .local/evidence
+  TV_DATABASE_URL: postgresql+psycopg://threatveil_app:${TV_DB_APP_PASSWORD:-threatveil-local-app}@postgres:5432/threatveil
+  TV_ADMIN_DATABASE_URL: postgresql+psycopg://threatveil_admin:${TV_DB_ADMIN_PASSWORD:-threatveil-local-admin}@postgres:5432/threatveil
+
+x-python-service: &python-service
+  image: threatveil-python:local
+  build:
+    context: .
+    dockerfile: Dockerfile.python
+  # Optional integrations (see .env.example) flow in from .env; the values under
+  # `environment` always win, so .env cannot turn this stack into a hosted one.
+  env_file:
+    - path: .env
+      required: false
+  environment: *python-environment
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_PASSWORD: ${TV_POSTGRES_PASSWORD:-threatveil-local-superuser}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  # Same role model as production and CI: migrations run as the owner, the API runs as a
+  # non-owner NOSUPERUSER NOBYPASSRLS role so row-level security applies. Idempotent.
+  db-init:
+    image: postgres:17-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${TV_POSTGRES_PASSWORD:-threatveil-local-superuser}
+      ADMIN_PASSWORD: ${TV_DB_ADMIN_PASSWORD:-threatveil-local-admin}
+      APP_PASSWORD: ${TV_DB_APP_PASSWORD:-threatveil-local-app}
+    entrypoint: ["sh", "-ec"]
+    command:
+      - |
+        psql -X -q -v ON_ERROR_STOP=1 -v admin_pw="$$ADMIN_PASSWORD" -v app_pw="$$APP_PASSWORD" <<'SQL'
+        SELECT 'CREATE ROLE threatveil_admin LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS'
+        WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'threatveil_admin')\gexec
+        SELECT 'CREATE ROLE threatveil_app LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOBYPASSRLS'
+        WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'threatveil_app')\gexec
+        ALTER ROLE threatveil_admin PASSWORD :'admin_pw';
+        ALTER ROLE threatveil_app PASSWORD :'app_pw';
+        SELECT 'CREATE DATABASE threatveil OWNER threatveil_admin'
+        WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'threatveil')\gexec
+        REVOKE ALL ON DATABASE threatveil FROM PUBLIC;
+        GRANT CONNECT ON DATABASE threatveil TO threatveil_admin, threatveil_app;
+        \connect threatveil
+        REVOKE ALL ON SCHEMA public FROM PUBLIC;
+        GRANT USAGE, CREATE ON SCHEMA public TO threatveil_admin;
+        GRANT USAGE ON SCHEMA public TO threatveil_app;
+        ALTER DEFAULT PRIVILEGES FOR ROLE threatveil_admin IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO threatveil_app;
+        ALTER DEFAULT PRIVILEGES FOR ROLE threatveil_admin IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO threatveil_app;
+        SQL
+        echo "ThreatVeil database roles ready."
+
+  migrate:
+    <<: *python-service
+    command: ["alembic", "upgrade", "head"]
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+
+  api:
+    <<: *python-service
+    command: ["uvicorn", "threatveil.api:app", "--host", "0.0.0.0", "--port", "8000"]
+    ports:
+      # The web workspace shares this network namespace, so its port is published here.
+      - "127.0.0.1:${TV_WEB_PORT:-3000}:3000"
+      - "127.0.0.1:${TV_API_PORT:-8000}:8000"
+    volumes:
+      # Evidence files and the local demonstration signing key survive restarts.
+      - api-state:/app/.local
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=3)"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  # Local sign-in is accepted only from a loopback peer. Sharing the API's network
+  # namespace keeps the web relay on loopback without weakening that check.
+  web:
+    image: threatveil-web:local
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    network_mode: service:api
+    environment:
+      TV_ENV: local
+      TV_LOCAL_AUTH: "true"
+      TV_API_URL: http://127.0.0.1:8000
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+    healthcheck:
+      test: ["CMD", "/nodejs/bin/node", "-e", "fetch('http://127.0.0.1:3000/login').then(r => process.exit(r.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 3s
+      timeout: 5s
+      retries: 40
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  demo:
+    <<: *python-service
+    profiles: [demo]
+    network_mode: service:api
+    volumes:
+      - api-state:/app/.local:ro
+      - ./scripts:/app/scripts:ro
+    entrypoint: ["python", "scripts/compose_demo.py"]
+    command: []
+    depends_on:
+      web:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  api-state:

@@ -1,0 +1,87 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "change-assurance/v1",
+      "default": "change-assurance/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "system_id": {
+      "format": "uuid",
+      "title": "System Id",
+      "type": "string"
+    },
+    "environment_id": {
+      "format": "uuid",
+      "title": "Environment Id",
+      "type": "string"
+    },
+    "principals": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Principals",
+      "type": "array"
+    },
+    "actions": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Actions",
+      "type": "array"
+    },
+    "resources": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Resources",
+      "type": "array"
+    },
+    "constraints": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 50,
+      "minItems": 1,
+      "title": "Constraints",
+      "type": "array"
+    },
+    "expires_at": {
+      "format": "date-time",
+      "title": "Expires At",
+      "type": "string"
+    },
+    "supersedes_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Id"
+    }
+  },
+  "required": [
+    "system_id",
+    "environment_id",
+    "principals",
+    "actions",
+    "resources",
+    "constraints",
+    "expires_at"
+  ],
+  "title": "EnvelopeInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,47 @@
+{
+  "schema_version": "assurance-pack/v1",
+  "id": "infrastructure",
+  "version": "0.1.0",
+  "archetype": "INFRASTRUCTURE",
+  "name": "Infrastructure and deployment agent",
+  "status": "DRAFT",
+  "author": "ThreatVeil",
+  "runnable": false,
+  "summary": "An agent that can change what runs: the production-approval, read-only boundary and privileged-action claims, and the deployment history observer.",
+  "compatibility": {
+    "sources": ["mcp", "agent_definition", "gcp_cloud_run", "github"],
+    "requires_live_source": false,
+    "environments": ["STAGING", "PRODUCTION"],
+    "note": "A repository revision or a desired configuration is never proof of what is running."
+  },
+  "claims": [
+    {"template_id": "production_deploy_requires_approval", "resource": "the production environment",
+     "action": "deploy", "declared_dependencies": ["permissions:deploy-approval"]},
+    {"template_id": "read_only_boundary", "resource": "the cloud control plane", "action": "read",
+     "declared_dependencies": ["permissions:read-only"]},
+    {"template_id": "privileged_action_requires_human", "resource": "privileged infrastructure operations",
+     "action": "execute", "declared_dependencies": ["permissions:human-confirmation"]}
+  ],
+  "dependency_proposals": [
+    {"subject_pattern": "authorization/tools/deploy*/approval_required",
+     "maps_to": ["permissions:deploy-approval"], "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The deploy tool's declared approval condition controls the release approval this claim depends on."},
+    {"subject_pattern": "authorization/tools/*/read_only", "maps_to": ["permissions:read-only"],
+     "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The declared read-only condition is the boundary this claim depends on."},
+    {"subject_pattern": "permissions:*", "maps_to": ["permissions:read-only"],
+     "reason": "PERMISSION_SCOPE_MATCH",
+     "evidence": "The source's declared permission block governs what the agent may change."}
+  ],
+  "observer_requirements": [
+    {"resource": "the production environment",
+     "system_of_record": "The deployment history of the environment itself",
+     "observed_effects": ["COMMITTED", "DENIED", "UNKNOWN"], "correlation": "RESOURCE_VERSION",
+     "note": "The observed revision must be the one actually serving traffic, not the desired configuration."}
+  ],
+  "limitations": [
+    "Desired state and readiness never establish exactly what code is running.",
+    "Inherited IAM, deny policies and effective access are outside a service-level read.",
+    "Claims are declared until an approved executable check with a qualified observer is bound to them."
+  ]
+}

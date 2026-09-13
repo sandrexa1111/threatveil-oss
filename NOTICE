@@ -1,0 +1,10 @@
+ThreatVeil
+Copyright 2026 The ThreatVeil Authors
+
+This product includes software developed as part of the ThreatVeil project
+(https://github.com/sandrexa1111/threatveil-oss), licensed under the Apache
+License, Version 2.0.
+
+Third-party dependencies are not vendored in this repository; they are
+installed from lockfiles and remain under their own licenses. See
+THIRD_PARTY_NOTICES.md for a summary.

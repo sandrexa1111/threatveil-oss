@@ -1,0 +1,41 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "change-assurance/v1",
+      "default": "change-assurance/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "system_id": {
+      "format": "uuid",
+      "title": "System Id",
+      "type": "string"
+    },
+    "environment_id": {
+      "format": "uuid",
+      "title": "Environment Id",
+      "type": "string"
+    },
+    "target_id": {
+      "format": "uuid",
+      "title": "Target Id",
+      "type": "string"
+    },
+    "review_note": {
+      "maxLength": 2000,
+      "minLength": 15,
+      "title": "Review Note",
+      "type": "string"
+    }
+  },
+  "required": [
+    "system_id",
+    "environment_id",
+    "target_id",
+    "review_note"
+  ],
+  "title": "TargetBindingInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

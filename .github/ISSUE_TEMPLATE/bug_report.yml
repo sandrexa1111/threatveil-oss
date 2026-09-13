@@ -1,0 +1,49 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Security vulnerabilities must be reported privately (see SECURITY.md), not here.
+        Never paste secrets, tokens or real customer data.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: The exact command or steps, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: How were you running ThreatVeil?
+      options:
+        - Docker Compose (make up / docker compose up --build)
+        - Host development (make dev-api / make dev-web)
+        - Tests or CI only
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: semantics
+    attributes:
+      label: Does this affect what ThreatVeil reports as verified, current or cleared?
+      description: Anything that could overstate assurance is treated as high priority.
+      options:
+        - "No"
+        - "Yes"
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      description: Output of `git rev-parse --short HEAD`
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Redact anything sensitive.
+      render: text

@@ -1,0 +1,83 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "change-assurance/v1",
+      "default": "change-assurance/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "system_id": {
+      "format": "uuid",
+      "title": "System Id",
+      "type": "string"
+    },
+    "environment_id": {
+      "format": "uuid",
+      "title": "Environment Id",
+      "type": "string"
+    },
+    "before_state_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Before State Id"
+    },
+    "after_state_id": {
+      "format": "uuid",
+      "title": "After State Id",
+      "type": "string"
+    },
+    "transition": {
+      "enum": [
+        "PROPOSED",
+        "OBSERVED"
+      ],
+      "title": "Transition",
+      "type": "string"
+    },
+    "change_type": {
+      "maxLength": 80,
+      "minLength": 1,
+      "title": "Change Type",
+      "type": "string"
+    },
+    "source_change_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Change Id"
+    },
+    "reason": {
+      "maxLength": 2000,
+      "minLength": 10,
+      "title": "Reason",
+      "type": "string"
+    }
+  },
+  "required": [
+    "system_id",
+    "environment_id",
+    "after_state_id",
+    "transition",
+    "change_type",
+    "reason"
+  ],
+  "title": "TransitionInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

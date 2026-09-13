@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="460" viewBox="0 0 1200 460" role="img" aria-labelledby="t d">
+  <title id="t">ThreatVeil architecture</title>
+  <desc id="d">Clients (web workspace, CLI and SDKs, MCP server, CI) call the FastAPI control plane, which stores append-only records in PostgreSQL with row-level security, signs Gate and Passport answers, and dispatches approved checks through a broker to workers that run against an authorized staging target observed by signed collectors.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5b6770"/></marker>
+    <style>
+      .bg{fill:#fbfaf7}.box{fill:#fff;stroke:#d5d9d6;stroke-width:1.5}.core{fill:#12302a}.zone{fill:none;stroke:#c9cfcb;stroke-width:1.2;stroke-dasharray:4 5}
+      .l{font:600 16px -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;fill:#13201c}
+      .lw{font:600 16px -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;fill:#fff}
+      .s{font:400 12.5px -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;fill:#5b6770}
+      .sw{font:400 12.5px -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Helvetica,Arial,sans-serif;fill:#b9d3c9}
+      .c{font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;fill:#5b6770;letter-spacing:.08em}
+      .ln{stroke:#5b6770;stroke-width:1.5;fill:none}
+    </style>
+  </defs>
+  <rect class="bg" width="1200" height="460" rx="16"/>
+  <text class="c" x="40" y="40">CLIENTS</text>
+  <rect class="box" x="40" y="56" width="220" height="62" rx="10"/><text class="l" x="58" y="83">Web workspace</text><text class="s" x="58" y="104">Next.js · relay /api/backend</text>
+  <rect class="box" x="40" y="132" width="220" height="62" rx="10"/><text class="l" x="58" y="159">CLI · Python/TS SDK</text><text class="s" x="58" y="180">propose-change · verify-passport</text>
+  <rect class="box" x="40" y="208" width="220" height="62" rx="10"/><text class="l" x="58" y="235">MCP server</text><text class="s" x="58" y="256">read-only, over HTTP</text>
+  <rect class="box" x="40" y="284" width="220" height="62" rx="10"/><text class="l" x="58" y="311">CI · Gate consumers</text><text class="s" x="58" y="332">reads answers, enforces itself</text>
+  <path class="ln" d="M260 87H400" marker-end="url(#a)"/><path class="ln" d="M260 163H400" marker-end="url(#a)"/><path class="ln" d="M260 239H400" marker-end="url(#a)"/><path class="ln" d="M260 315H400" marker-end="url(#a)"/>
+  <text class="c" x="404" y="40">CONTROL PLANE</text>
+  <rect class="core" x="404" y="56" width="330" height="290" rx="12"/>
+  <text class="lw" x="428" y="92">FastAPI API</text>
+  <text class="sw" x="428" y="124">identity · tenancy · CSRF · tokens</text>
+  <text class="sw" x="428" y="150">authority · claims · mappings</text>
+  <text class="sw" x="428" y="176">evidence binding · invalidation</text>
+  <text class="sw" x="428" y="202">current assurance projections</text>
+  <text class="sw" x="428" y="228">Ed25519 DSSE signing · trust keys</text>
+  <text class="sw" x="428" y="270">Gate  GET /v1/systems/{id}/assurance/current</text>
+  <text class="sw" x="428" y="296">Passport issuance · status · share</text>
+  <text class="c" x="790" y="40">STATE</text>
+  <rect class="box" x="790" y="56" width="370" height="96" rx="10"/><text class="l" x="810" y="86">PostgreSQL 17</text><text class="s" x="810" y="110">append-only records + typed edges</text><text class="s" x="810" y="132">FORCE RLS · non-owner runtime role</text>
+  <rect class="box" x="790" y="170" width="370" height="62" rx="10"/><text class="l" x="810" y="197">Evidence storage</text><text class="s" x="810" y="218">content-addressed · local files or GCS</text>
+  <path class="ln" d="M734 104H786" marker-end="url(#a)"/><path class="ln" d="M734 201H786" marker-end="url(#a)"/>
+  <text class="c" x="404" y="384">EXECUTION</text>
+  <rect class="box" x="404" y="396" width="180" height="48" rx="10"/><text class="l" x="422" y="426">Broker</text>
+  <rect class="box" x="614" y="396" width="200" height="48" rx="10"/><text class="l" x="632" y="419">Worker</text><text class="s" x="702" y="419">no DB/secrets</text>
+  <rect class="box" x="844" y="396" width="316" height="48" rx="10"/><text class="l" x="862" y="419">Authorized staging target</text><text class="s" x="862" y="436">observed by signed collectors</text>
+  <path class="ln" d="M494 346V392" marker-end="url(#a)"/><path class="ln" d="M584 420H610" marker-end="url(#a)"/><path class="ln" d="M814 420H840" marker-end="url(#a)"/>
+  <path class="ln" d="M1002 396V372Q1002 360 990 360H760Q748 360 740 340" marker-end="url(#a)"/><text class="s" x="800" y="352">signed observations</text>
+  <rect class="zone" x="24" y="24" width="1152" height="336" rx="14"/>
+</svg>

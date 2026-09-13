@@ -1,0 +1,49 @@
+<section class="wrap narrow article">
+  <p class="eyebrow">Project status</p>
+  <h1>An open-source research and engineering project.</h1>
+  <p class="lede">ThreatVeil began as a commercial startup experiment and is now an open-source research and engineering project.</p>
+
+  <div class="prose">
+    <h2>Why it is open source</h2>
+    <p>ThreatVeil was built around one question: when an autonomous AI system changes, how do we know the security conclusions we previously relied on are still true? That question is broader and earlier than any single product. It touches agent frameworks, MCP, deployment platforms, identity and security testing, and it deserves to be tested and argued with by the people who work on those systems.</p>
+    <p>The architecture is substantial enough to be worth studying, and honest enough about its gaps that contributors can see exactly where to start. <a href="/blog/why-we-open-sourced-threatveil/">Read the full story →</a></p>
+
+    <h2>Release</h2>
+    <p><strong>v0.1.0</strong>, the first public release. Experimental: not validated in production or with real customers. Licensed under Apache-2.0.</p>
+
+    <h2>What is complete</h2>
+    <p>Implemented and tested locally:</p>
+    <ul>
+      <li>Append-only assurance records on PostgreSQL with forced row-level security and split database roles.</li>
+      <li>Deterministic agent-definition parsing for Claude Code settings, <code>.mcp.json</code>, subagent files, MCP tool catalogues, CrewAI and the ThreatVeil manifest.</li>
+      <li>Authority-direction classification, reviewed dependency mapping and per-claim evidence invalidation.</li>
+      <li>Proposed-change impact before shipping, without touching current state.</li>
+      <li>The Assurance Gate, and Ed25519-signed Passports and receipts with offline verification.</li>
+      <li>A one-command Docker Compose stack and an end-to-end synthetic demonstration.</li>
+      <li>About 700 Python tests against real PostgreSQL, plus browser, SDK and Terraform tests.</li>
+    </ul>
+
+    <h2>What remains experimental</h2>
+    <table>
+      <thead><tr><th>Area</th><th>Status today</th></tr></thead>
+      <tbody>
+        <tr><td>Restoring assurance after a source change</td><td>Works only on the synthetic fixture</td></tr>
+        <tr><td>Business Effect Observer Contract</td><td>Declares observers, but produces no evidence</td></tr>
+        <tr><td>Live sources</td><td>Collected only on request; no scheduler</td></tr>
+        <tr><td>Clearance scope</td><td>Staging environments, evidence at most 24 hours old</td></tr>
+        <tr><td>Code-defined agents</td><td>LangGraph tools and OpenAI Agents SDK stay unknown</td></tr>
+        <tr><td>GitHub App, GCP deployment of the platform</td><td>Implemented, never accepted in real use</td></tr>
+        <tr><td>Real-world validation</td><td>None yet</td></tr>
+      </tbody>
+    </table>
+    <p>Every limitation is documented in <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/KNOWN_LIMITATIONS.md">KNOWN_LIMITATIONS.md</a>, and the internal audit that found them is published unedited.</p>
+
+    <h2>How to contribute</h2>
+    <ol>
+      <li>Run it locally: <code>docker compose up --build</code>, then <code>make demo</code>.</li>
+      <li>Read the <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/ROADMAP.md">roadmap</a> and pick an issue labelled <em>good first issue</em>, <em>help wanted</em> or <em>research</em>.</li>
+      <li>Follow the <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/CONTRIBUTING.md">contributing guide</a>. Any change that modifies assurance truth needs tests and documentation.</li>
+      <li>Report vulnerabilities privately through GitHub (see the <a href="https://github.com/sandrexa1111/threatveil-oss/security/policy">security policy</a>).</li>
+    </ol>
+  </div>
+</section>

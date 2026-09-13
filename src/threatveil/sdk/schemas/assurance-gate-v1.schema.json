@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://threatveil.com/schemas/assurance-gate/v1",
+  "title": "ThreatVeil Assurance Gate response",
+  "description": "The machine-consumable answer to: is this system still cleared to act? It never grants authorization. UNKNOWN never means cleared.",
+  "type": "object",
+  "required": ["schema_version", "issuer", "evaluated_at", "system", "status", "cleared", "authorizes", "freshness", "reasons", "consumer_contract"],
+  "properties": {
+    "schema_version": {"const": "threatveil-assurance-gate/v1"},
+    "issuer": {"const": "threatveil"},
+    "profile": {"const": "threatveil-assurance-gate/v1"},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "system": {"type": "object", "required": ["id", "name"], "properties": {"id": {"type": "string", "format": "uuid"}, "name": {"type": ["string", "null"]}}},
+    "environment": {"type": ["object", "null"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "purpose": {"enum": ["SANDBOX", "STAGING", "PRODUCTION"]}}},
+    "state": {"type": ["object", "null"], "properties": {"id": {"type": "string"}, "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "envelope_digest": {"type": "string"}}},
+    "authority": {"type": ["object", "null"], "properties": {"envelope_digest": {"type": "string"}, "policy_epoch": {"type": "integer"}, "reviewed_until": {"type": "string"}}},
+    "status": {"enum": ["CURRENT", "EXPIRED", "SUPERSEDED", "REASSESS", "REVOKED", "UNKNOWN"]},
+    "action": {"enum": ["ALLOW", "WARN", "BLOCK", "REQUIRE_APPROVAL", null]},
+    "cleared": {"type": "boolean", "description": "True only when status is CURRENT and action is ALLOW."},
+    "authorizes": {"const": false},
+    "decision": {"type": ["object", "null"], "properties": {"id": {"type": "string"}, "action": {"type": "string"}, "issued_at": {"type": "string"}, "signed_statement_expires_at": {"type": "string"}, "signed_statement_live": {"type": "boolean"}, "status_uri": {"type": "string"}, "record_uri": {"type": "string"}}},
+    "claims": {"type": ["object", "null"], "properties": {"total": {"type": "integer"}, "supported": {"type": "integer"}, "affected": {"type": "array"}}},
+    "scope": {"type": ["object", "null"], "properties": {"action": {"type": "string"}, "declared": {"type": "boolean"}, "status": {"enum": ["SUPPORTED", "NEEDS_FRESH_EVIDENCE", "FAILED", "UNGOVERNED", "UNDECLARED"]}, "cleared": {"type": "boolean"}}},
+    "obligations": {"type": "array"},
+    "reasons": {"type": "array", "items": {"type": "string"}},
+    "freshness": {"type": "object", "required": ["evaluated_at", "max_age_seconds", "valid_until"], "properties": {"evaluated_at": {"type": "string"}, "max_age_seconds": {"type": "integer", "maximum": 60}, "valid_until": {"type": "string"}}},
+    "consumer_contract": {"type": "object"}
+  }
+}

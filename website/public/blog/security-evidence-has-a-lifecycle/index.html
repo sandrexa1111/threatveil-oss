@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security evidence has a lifecycle · ThreatVeil</title>
+<meta name="description" content="A security conclusion can be historically correct and no longer apply. How ThreatVeil models state, authority, dependency mapping and evidence invalidation for changing AI systems.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://threatveil.com/blog/security-evidence-has-a-lifecycle/">
+<meta name="theme-color" content="#0f231e">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:site_name" content="ThreatVeil">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Security evidence has a lifecycle · ThreatVeil">
+<meta property="og:description" content="A security conclusion can be historically correct and no longer apply. How ThreatVeil models state, authority, dependency mapping and evidence invalidation for changing AI systems.">
+<meta property="og:url" content="https://threatveil.com/blog/security-evidence-has-a-lifecycle/">
+<meta property="og:image" content="https://threatveil.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Security evidence expires when the system changes. ThreatVeil, open-source assurance for changing AI systems.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Security evidence has a lifecycle · ThreatVeil">
+<meta name="twitter:description" content="A security conclusion can be historically correct and no longer apply. How ThreatVeil models state, authority, dependency mapping and evidence invalidation for changing AI systems.">
+<meta name="twitter:image" content="https://threatveil.com/og.png">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Security evidence has a lifecycle",
+  "description": "A security conclusion can be historically correct and no longer apply. How ThreatVeil models state, authority, dependency mapping and evidence invalidation for changing AI systems.",
+  "datePublished": "2026-09-14",
+  "mainEntityOfPage": "https://threatveil.com/blog/security-evidence-has-a-lifecycle/",
+  "author": {
+    "@type": "Organization",
+    "name": "ThreatVeil maintainers"
+  },
+  "image": "https://threatveil.com/og.png"
+}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="/" aria-label="ThreatVeil home">
+      <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><path d="M16 2.5 4 7v8.2c0 7.2 5 12.9 12 14.8 7-1.9 12-7.6 12-14.8V7L16 2.5Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="m10.5 12 5.5 9.5 5.5-9.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>ThreatVeil</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/#how-it-works">How it works</a>
+      <a href="/#architecture">Architecture</a>
+      <a href="/status/">Status</a>
+      <a href="/blog/">Blog</a>
+      <a class="nav-gh" href="https://github.com/sandrexa1111/threatveil-oss">GitHub</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+<article class="article wrap narrow"><p class="eyebrow"><a href="/blog/">Blog</a> · <time datetime="2026-09-14">2026-09-14</time></p><h1>Security evidence has a lifecycle</h1><p class="lede">A security conclusion can be historically correct and no longer apply. How ThreatVeil models state, authority, dependency mapping and evidence invalidation for changing AI systems.</p><div class="prose"><p>A security test result has two properties that are easy to conflate:</p>
+<ol>
+<li><strong>Correctness:</strong> was the conclusion true for the system that was tested?</li>
+<li><strong>Applicability:</strong> does that conclusion still describe the system running now?</li>
+</ol>
+<p>Traditional tooling tracks the first carefully and the second barely at all. For autonomous AI systems, whose tools, permissions, models and configuration change continuously and mostly outside code, the second is where risk accumulates.</p>
+<blockquote>
+<p>Evidence can become stale without ever having been false.</p>
+</blockquote>
+<p>This post walks through how ThreatVeil, an open-source experimental assurance platform, models that lifecycle. The examples come from its synthetic Finance Agent demonstration.</p>
+<h2>1. Start from state, not from a test run</h2>
+<p>A test result means nothing without the state it was produced on. ThreatVeil records a <strong>system</strong> (the protected unit, such as "Finance Agent in staging") and its <strong>operating state</strong>: the observed configuration, tools, permissions and component revisions, reduced to a fingerprint.</p>
+<p>Evidence is always bound to that fingerprint:</p>
+<pre><code>evidence(claim, state_fingerprint, observer, produced_at, expires_at)
+</code></pre>
+<p>When the state changes, existing evidence does not become <em>wrong</em>. It becomes evidence about a <em>different</em> state. Everything else follows from taking that seriously.</p>
+<h2>2. Authority is what makes a change matter</h2>
+<p>Not every change is security-relevant. What matters is <strong>authority</strong>: what the system is able to do. ThreatVeil derives authority from declared and observed sources, such as agent definitions, MCP tool catalogues and permission rules.</p>
+<p>When a change arrives, ThreatVeil classifies its direction:</p>
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Example</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AUTHORITY_EXPANDED</code></td>
+<td><code>beneficiary.update</code> <code>approval_required: true → false</code></td>
+<td>The new boundary is not contained in the old one</td>
+</tr>
+<tr>
+<td><code>AUTHORITY_RESTRICTED</code></td>
+<td>A tool moves to the deny list</td>
+<td>The new boundary is contained in the old one</td>
+</tr>
+<tr>
+<td><code>EQUIVALENT</code></td>
+<td>A cosmetic field changes</td>
+<td>No authority difference</td>
+</tr>
+<tr>
+<td><code>UNKNOWN_IMPACT</code></td>
+<td>A numeric limit changes, or a tool defined in code</td>
+<td>No reviewed semantics exist, so no conclusion is drawn</td>
+</tr>
+</tbody>
+</table>
+<p>The classifier deliberately knows a small vocabulary. Anything outside it is <code>UNKNOWN_IMPACT</code>, never "probably fine".</p>
+<h2>3. Claims say what must stay true</h2>
+<p>A <strong>security claim</strong> is a statement in business language, such as "beneficiary changes require finance approval". It becomes verifiable when backed by an executable property: a forbidden outcome, a permitted outcome, the observation that decides between them, and a legitimate task that must keep working.</p>
+<p>A claim that has only been declared is <code>NOT_YET_VERIFIED</code>. It can be used to reason about change impact, but it is never reported as supported.</p>
+<h2>4. Dependency mapping decides reach</h2>
+<p>A change invalidates evidence for the claims it can reach, and the link between facts and claims is a <strong>reviewed dependency mapping</strong>. It says, for example, that the claim "beneficiary changes require finance approval" depends on <code>permissions:finance-approval</code>, and that this dependency corresponds to the gateway's <code>beneficiary.update.approval_required</code> fact.</p>
+<p>Mappings are human decisions: attributed, append-only and visible. They are what lets ThreatVeil say something precise:</p>
+<blockquote>
+<p>1 claim affected, 1 evidence package stale, 2 claims still hold.</p>
+</blockquote>
+<p>Without them it can only say something honest and broad: every claim this change could reach needs review. In ThreatVeil that conservative answer is the default, not a failure mode.</p>
+<h2>5. Invalidation supersedes; it does not rewrite history</h2>
+<p>When the gateway stops requiring approval:</p>
+<ol>
+<li>The change is recorded as a new, immutable record with its source and acquisition mode (here <code>IMPORTED</code>, from a synthetic MCP gateway).</li>
+<li>Authority is classified <code>AUTHORITY_EXPANDED</code>.</li>
+<li>The mapping connects the changed fact to one claim; its evidence no longer applies to the current state.</li>
+<li>The previous clearance becomes <code>SUPERSEDED</code>.</li>
+</ol>
+<p>Nothing is deleted or edited. The earlier signed decision is still authentic: it was correct for the state it described. ThreatVeil's history is append-only, so "what did we know, when, about which state" can always be reconstructed.</p>
+<h2>6. Re-verification has two conditions</h2>
+<p>Restoring assurance means producing new evidence on the new state. ThreatVeil's demonstration re-establishes the affected claim three ways:</p>
+<table>
+<thead>
+<tr>
+<th>Attempt</th>
+<th>Security outcome</th>
+<th>Useful task</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>A forbidden update commits</td>
+<td>n/a</td>
+<td><strong>Not cleared</strong></td>
+</tr>
+<tr>
+<td>B</td>
+<td>Forbidden update blocked</td>
+<td>Legitimate invoice updates break</td>
+<td><strong>Not cleared</strong></td>
+</tr>
+<tr>
+<td>C</td>
+<td>Approval restored and re-proven</td>
+<td>Legitimate work succeeds</td>
+<td><strong>Clearance restored</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Attempt B is the important one. A fix that blocks everything passes the security check and fails the business. Treating <code>SECURITY PASS + USEFUL TASK FAILURE</code> as not cleared keeps assurance from being gamed by breaking the system.</p>
+<h2>7. Two consumers: machines and other organizations</h2>
+<p><strong>The Assurance Gate</strong> is the machine answer: a small, signed-state-aware response a pipeline or policy engine can consume.</p>
+<pre><code class="language-json">{ &quot;status&quot;: &quot;CURRENT&quot;, &quot;cleared&quot;: true, &quot;authorizes&quot;: false, &quot;valid_until&quot;: &quot;…&quot; }
+</code></pre>
+<p>It is valid for a short window and explicitly does not authorize anything. Enforcement belongs to the consumer.</p>
+<p><strong>The Passport</strong> is the answer for another organization: an Ed25519-signed DSSE envelope describing the assurance of a system. It separates two facts that are usually merged:</p>
+<ul>
+<li><strong>Authenticity:</strong> was this issued by the holder of the trusted key? This is verifiable offline, and it stays true forever.</li>
+<li><strong>Currency:</strong> does it still describe the system as it is now? This is recomputed on request.</li>
+</ul>
+<p>After the approval change, a previously shared Passport still verifies as authentic, and its status reads <em>superseded by a later change</em>. A PDF report cannot say that.</p>
+<h2>8. Where the model is incomplete</h2>
+<p>ThreatVeil implements this lifecycle end to end only on its synthetic fixture. The open problems are real:</p>
+<ul>
+<li><strong>Restoration after source-observed changes</strong> currently needs exact digest reconciliation that only the fixture provides.</li>
+<li><strong>Observers:</strong> evidence production requires signed collectors and qualification runs, and a newer observer contract does not yet feed evidence.</li>
+<li><strong>Freshness:</strong> without scheduled collection, a live source's staleness unsupports claims.</li>
+<li><strong>Production binding:</strong> evidence is bounded to 24 hours and staging environments.</li>
+<li><strong>Mapping in force:</strong> historical impact is judged by today's mappings rather than those that applied at the time.</li>
+</ul>
+<p>These are research and engineering questions, not bugs to hide. They are listed in <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/KNOWN_LIMITATIONS.md">KNOWN_LIMITATIONS.md</a> and <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/ROADMAP.md">ROADMAP.md</a>.</p>
+<h2>The takeaway</h2>
+<p>If you build or secure autonomous systems, try asking this about your last security review:</p>
+<blockquote>
+<p>Which of these conclusions still apply to the system running today, and how would I know when one stops?</p>
+</blockquote>
+<p>ThreatVeil is one attempt at an answer. It is Apache-2.0 licensed, and <code>make demo</code> shows the whole lifecycle in a few minutes.</p></div><p class="article-foot"><a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/blog/security-evidence-has-a-lifecycle.md">Source on GitHub</a> · <a href="https://github.com/sandrexa1111/threatveil-oss">ThreatVeil repository</a></p></article>
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div>
+      <p class="footer-brand">ThreatVeil</p>
+      <p class="muted">Open-source assurance infrastructure for changing autonomous AI systems. Experimental software, Apache-2.0.</p>
+    </div>
+    <nav aria-label="Project">
+      <p class="footer-h">Project</p>
+      <a href="https://github.com/sandrexa1111/threatveil-oss">GitHub</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/releases">Releases</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/ROADMAP.md">Roadmap</a>
+      <a href="/status/">Project status</a>
+    </nav>
+    <nav aria-label="Documentation">
+      <p class="footer-h">Docs</p>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/ARCHITECTURE.md">Architecture</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/KNOWN_LIMITATIONS.md">Known limitations</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/QUICKSTART.md">Quickstart</a>
+      <a href="/blog/">Blog</a>
+    </nav>
+    <nav aria-label="Community">
+      <p class="footer-h">Community</p>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/issues">Issues</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/discussions">Discussions</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/CONTRIBUTING.md">Contributing</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/security/policy">Security</a>
+    </nav>
+  </div>
+  <div class="wrap footer-base muted">Product names belong to their owners; no endorsement is implied.</div>
+</footer>
+</body>
+</html>

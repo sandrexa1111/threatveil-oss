@@ -1,0 +1,11 @@
+{
+  "events": [
+    {
+      "hook_event_name": "PreToolUse",
+      "session_id": "synthetic-session",
+      "tool_use_id": "synthetic-tool-1",
+      "tool_name": "payment.update",
+      "observed_at": "2026-09-10T00:00:00Z"
+    }
+  ]
+}

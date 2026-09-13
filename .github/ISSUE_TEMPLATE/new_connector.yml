@@ -1,0 +1,38 @@
+name: New connector, adapter or observer
+description: Propose support for an agent framework, tool gateway, platform or business-effect observer
+labels: [integration]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read docs/CONNECTOR_CONTRACT.md and docs/AGENT_DEFINITIONS.md first. Imported or declared data never becomes evidence on its own; say how your proposal respects that.
+  - type: input
+    id: target
+    attributes:
+      label: What to integrate
+      description: For example "LangGraph tool registry", "Kubernetes RBAC", "an HTTP business-effect observer".
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind
+      options:
+        - Agent-definition adapter (declared authority)
+        - Source connector (observed facts and changes)
+        - Business-effect observer (evidence)
+        - Gate or Passport consumer
+    validations:
+      required: true
+  - type: textarea
+    id: facts
+    attributes:
+      label: Facts it would report
+      description: Which authority, configuration or effect facts, and how their provenance is established.
+    validations:
+      required: true
+  - type: textarea
+    id: unknowns
+    attributes:
+      label: What must stay UNKNOWN
+      description: Parts that cannot be interpreted deterministically (for example code-defined tools).

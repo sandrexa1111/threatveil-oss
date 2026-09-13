@@ -1,0 +1,8 @@
+packages:
+  - apps/web
+  - src/threatveil/sdk/typescript
+allowBuilds:
+  '@firebase/util': false
+  protobufjs: false
+  sharp: true
+  unrs-resolver: true

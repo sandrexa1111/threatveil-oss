@@ -1,0 +1,63 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "change-assurance/v1",
+      "default": "change-assurance/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "authorization_id": {
+      "format": "uuid",
+      "title": "Authorization Id",
+      "type": "string"
+    },
+    "environment_id": {
+      "format": "uuid",
+      "title": "Environment Id",
+      "type": "string"
+    },
+    "state_digest": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "State Digest",
+      "type": "string"
+    },
+    "audience": {
+      "maxLength": 200,
+      "minLength": 3,
+      "title": "Audience",
+      "type": "string"
+    },
+    "expected_prior_epoch": {
+      "minimum": 0,
+      "title": "Expected Prior Epoch",
+      "type": "integer"
+    },
+    "request_nonce": {
+      "maxLength": 120,
+      "minLength": 12,
+      "title": "Request Nonce",
+      "type": "string"
+    },
+    "mechanism": {
+      "enum": [
+        "synthetic_compare_and_set",
+        "external_request"
+      ],
+      "title": "Mechanism",
+      "type": "string"
+    }
+  },
+  "required": [
+    "authorization_id",
+    "environment_id",
+    "state_digest",
+    "audience",
+    "expected_prior_epoch",
+    "request_nonce",
+    "mechanism"
+  ],
+  "title": "EnforcementInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

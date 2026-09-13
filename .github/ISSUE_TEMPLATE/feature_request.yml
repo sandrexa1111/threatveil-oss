@@ -1,0 +1,27 @@
+name: Idea or improvement
+description: Propose work, ideally one of the directions in ROADMAP.md
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ThreatVeil is maintained on a best-effort basis. Proposals tied to ROADMAP.md or
+        docs/KNOWN_LIMITATIONS.md are the most useful.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can someone not do, or what does ThreatVeil get wrong, today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What you would change, and how it keeps declared, imported or synthetic input from becoming evidence.
+    validations:
+      required: true
+  - type: input
+    id: roadmap
+    attributes:
+      label: Related roadmap or limitation item

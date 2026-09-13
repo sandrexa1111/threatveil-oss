@@ -1,0 +1,69 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "scanner",
+          "version": "1",
+          "rules": [
+            {
+              "id": "AUTH-1",
+              "name": "Missing authorization",
+              "messageStrings": {
+                "finding": {
+                  "text": "Missing check at {0}"
+                }
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              }
+            }
+          ]
+        }
+      },
+      "artifacts": [
+        {
+          "location": {
+            "uri": "src/payment.py",
+            "uriBaseId": "%SRCROOT%"
+          }
+        }
+      ],
+      "results": [
+        {
+          "ruleId": "AUTH-1",
+          "ruleIndex": 0,
+          "message": {
+            "id": "finding",
+            "arguments": [
+              "payment.update"
+            ]
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "index": 0
+                },
+                "region": {
+                  "startLine": 42
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "abc"
+          },
+          "baselineState": "unchanged",
+          "suppressions": [
+            {
+              "kind": "inSource",
+              "status": "accepted"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

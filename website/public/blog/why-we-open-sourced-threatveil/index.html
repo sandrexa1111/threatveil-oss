@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Why we open-sourced ThreatVeil · ThreatVeil</title>
+<meta name="description" content="ThreatVeil started as a company-building experiment around one question about autonomous AI systems. The research and engineering are more useful in the open.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://threatveil.com/blog/why-we-open-sourced-threatveil/">
+<meta name="theme-color" content="#0f231e">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:site_name" content="ThreatVeil">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Why we open-sourced ThreatVeil · ThreatVeil">
+<meta property="og:description" content="ThreatVeil started as a company-building experiment around one question about autonomous AI systems. The research and engineering are more useful in the open.">
+<meta property="og:url" content="https://threatveil.com/blog/why-we-open-sourced-threatveil/">
+<meta property="og:image" content="https://threatveil.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Security evidence expires when the system changes. ThreatVeil, open-source assurance for changing AI systems.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Why we open-sourced ThreatVeil · ThreatVeil">
+<meta name="twitter:description" content="ThreatVeil started as a company-building experiment around one question about autonomous AI systems. The research and engineering are more useful in the open.">
+<meta name="twitter:image" content="https://threatveil.com/og.png">
+<link rel="stylesheet" href="/styles.css">
+<script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Why we open-sourced ThreatVeil",
+  "description": "ThreatVeil started as a company-building experiment around one question about autonomous AI systems. The research and engineering are more useful in the open.",
+  "datePublished": "2026-09-14",
+  "mainEntityOfPage": "https://threatveil.com/blog/why-we-open-sourced-threatveil/",
+  "author": {
+    "@type": "Organization",
+    "name": "ThreatVeil maintainers"
+  },
+  "image": "https://threatveil.com/og.png"
+}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="/" aria-label="ThreatVeil home">
+      <svg viewBox="0 0 32 32" width="24" height="24" aria-hidden="true"><path d="M16 2.5 4 7v8.2c0 7.2 5 12.9 12 14.8 7-1.9 12-7.6 12-14.8V7L16 2.5Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="m10.5 12 5.5 9.5 5.5-9.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>ThreatVeil</span>
+    </a>
+    <nav class="nav" aria-label="Primary">
+      <a href="/#how-it-works">How it works</a>
+      <a href="/#architecture">Architecture</a>
+      <a href="/status/">Status</a>
+      <a href="/blog/">Blog</a>
+      <a class="nav-gh" href="https://github.com/sandrexa1111/threatveil-oss">GitHub</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+<article class="article wrap narrow"><p class="eyebrow"><a href="/blog/">Blog</a> · <time datetime="2026-09-14">2026-09-14</time></p><h1>Why we open-sourced ThreatVeil</h1><p class="lede">ThreatVeil started as a company-building experiment around one question about autonomous AI systems. The research and engineering are more useful in the open.</p><div class="prose"><p>ThreatVeil began as an attempt to build a company around a simple question:</p>
+<blockquote>
+<p>When an autonomous AI system changes, how do we know the security conclusions we previously relied on are still true?</p>
+</blockquote>
+<p>We spent 2026 building a substantial experimental architecture around that question. It covers authority tracking, security claims, evidence applicability, change impact, signed assurance records, a machine-readable Assurance Gate and externally verifiable Passports. Today we are releasing all of it under the Apache License 2.0, together with an unedited internal audit of what works and what does not.</p>
+<p>This post explains the problem, what we built, what we learned, and why we think open source is the right next phase.</p>
+<h2>The problem: security evidence quietly expires</h2>
+<p>The usual security workflow for software is familiar:</p>
+<pre><code>TEST → PASS → SHIP
+</code></pre>
+<p>Autonomous AI systems break the last arrow. An agent that issues refunds or updates payment details is tested, and it passes. Then the system keeps changing, and most of those changes are not code:</p>
+<ul>
+<li>a tool gateway stops requiring approval for one operation;</li>
+<li>someone adds an MCP server with a new tool;</li>
+<li>a permission rule in <code>.claude/settings.json</code> is relaxed;</li>
+<li>the model behind the agent is swapped;</li>
+<li>a prompt, a limit or a tenant binding changes.</li>
+</ul>
+<pre><code>TEST → PASS → MODEL / TOOL / PERMISSION / CONFIG CHANGES → ?
+</code></pre>
+<p>The old test result is still <em>true</em>: the system you tested did pass. What nobody can easily say is whether it still <em>applies</em> to the system running now. Most organizations answer that question with a calendar ("re-test quarterly") or not at all.</p>
+<h2>What we built</h2>
+<p>ThreatVeil models the whole chain explicitly:</p>
+<pre><code>System → Authority → Security claims → Evidence → Change
+       → Evidence invalidation → Re-verification → Current assurance → Gate / Passport
+</code></pre>
+<p>A few ideas carry most of the weight.</p>
+<p><strong>Evidence is bound to a state.</strong> A passing check is recorded against the exact configuration and authority it was produced on, and it expires. It supports a claim only while that state holds.</p>
+<p><strong>Changes invalidate evidence selectively.</strong> When a change arrives, ThreatVeil classifies which way authority moved (expanded, restricted, unknown). Human-reviewed dependency mappings then determine which claims the change reaches. In the synthetic demonstration, relaxing an approval requirement makes exactly one of three claims lose its evidence, while the other two keep theirs. Without a reviewed mapping, ThreatVeil stays conservative: everything the change could reach needs review.</p>
+<p><strong>Blocking useful work is not a fix.</strong> Re-verification checks both that the bad outcome is prevented and that the legitimate task still works. <code>SECURITY PASS + USEFUL TASK FAILURE = NOT CLEARED</code>.</p>
+<p><strong>Authentic is not the same as current.</strong> A Passport is a signed statement that an external party can verify offline. Its signature stays valid forever, but its <em>current status</em> is recomputed on request. After a later change the Passport is still authentic, and it now reads <em>superseded</em>.</p>
+<p><strong>Declared is not verified.</strong> Importing an agent definition and declaring claims gives an immediate, useful answer to "what would this change reach?". It never produces evidence. The product keeps those two answers visibly separate.</p>
+<h2>What works, and what does not</h2>
+<p>We want this release to be judged on the truth, so here it is.</p>
+<p><strong>Working today:</strong> the append-only assurance kernel with tenant isolation and signed records; deterministic parsing of Claude Code settings, <code>.mcp.json</code>, subagent files, MCP tool catalogues, CrewAI and a ThreatVeil manifest; authority-direction classification; reviewed dependency mapping; proposed-change dry runs; the Assurance Gate; signed Passports with offline verification; and a full end-to-end demonstration. About 700 Python tests run against real PostgreSQL, including row-level security and signature checks.</p>
+<p><strong>Not working, or only on the synthetic fixture:</strong></p>
+<ul>
+<li>Regaining assurance after a source-observed change works only for the demonstration fixture. On other systems two passing re-verifications still leave the Gate not cleared.</li>
+<li>There are two observer concepts, and the newer one produces no evidence.</li>
+<li>Nothing schedules collection from "live" sources, so a connected source degrades clearance within minutes.</li>
+<li>Evidence lives at most 24 hours, and production environments cannot be cleared.</li>
+<li>ThreatVeil was never accepted in a cloud deployment or used by a real customer.</li>
+</ul>
+<p>All of this is in <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/KNOWN_LIMITATIONS.md">KNOWN_LIMITATIONS.md</a>, and the audit that found it is in the repository.</p>
+<h2>What we learned</h2>
+<p><strong>The hard part is not detection; it is applicability.</strong> Diffing configuration is easy, and large language models are getting good at explaining diffs. Knowing which earlier <em>evidence</em> a diff invalidates, and proving that nothing else was affected, requires a model of claims, dependencies and state that most tools do not have.</p>
+<p><strong>Conservatism has to be designed in.</strong> Every shortcut we were tempted by (inferring dependencies, trusting imported traces, treating a declaration as a check) would have produced a friendlier product that sometimes said "fine" when it did not know. The Gate never reported a false clearance in any audited scenario, and that was the result of saying UNKNOWN a lot.</p>
+<p><strong>The last mile is evidence production.</strong> Getting a real system to produce qualified, state-bound evidence repeatedly is harder than modelling it. That is where the open problems are.</p>
+<h2>Why open source</h2>
+<p>A company needs a narrow, sellable loop and a customer who pays for it now. The research question underneath ThreatVeil is broader and earlier than that. It touches agent frameworks, MCP, deployment platforms, identity systems and security testing. It deserves to be tested and argued with by people who work on those systems.</p>
+<p>The architecture is substantial enough to be worth studying and extending. It is honest enough about its gaps that contributors can see exactly where to start. Keeping it private would mean nobody learns from it.</p>
+<h2>Where you can help</h2>
+<ul>
+<li><strong>Generic restoration:</strong> re-establish assurance after a source change on any system, not just the fixture.</li>
+<li><strong>Observer unification:</strong> one observer concept that yields evidence.</li>
+<li><strong>Scheduled collection:</strong> make "watching" true.</li>
+<li><strong>Framework adapters:</strong> LangGraph and OpenAI Agents SDK, where tools are defined in code.</li>
+<li><strong>Authority semantics:</strong> numeric limits, schema bounds and MCP annotations.</li>
+<li><strong>Research:</strong> can evidence applicability be measured? What would a portable assurance record look like?</li>
+</ul>
+<p>Start with the <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/ROADMAP.md">roadmap</a> and the <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/CONTRIBUTING.md">contributing guide</a>, run <code>make demo</code>, and tell us where the model breaks.</p></div><p class="article-foot"><a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/blog/why-we-open-sourced-threatveil.md">Source on GitHub</a> · <a href="https://github.com/sandrexa1111/threatveil-oss">ThreatVeil repository</a></p></article>
+</main>
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div>
+      <p class="footer-brand">ThreatVeil</p>
+      <p class="muted">Open-source assurance infrastructure for changing autonomous AI systems. Experimental software, Apache-2.0.</p>
+    </div>
+    <nav aria-label="Project">
+      <p class="footer-h">Project</p>
+      <a href="https://github.com/sandrexa1111/threatveil-oss">GitHub</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/releases">Releases</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/ROADMAP.md">Roadmap</a>
+      <a href="/status/">Project status</a>
+    </nav>
+    <nav aria-label="Documentation">
+      <p class="footer-h">Docs</p>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/ARCHITECTURE.md">Architecture</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/KNOWN_LIMITATIONS.md">Known limitations</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/docs/QUICKSTART.md">Quickstart</a>
+      <a href="/blog/">Blog</a>
+    </nav>
+    <nav aria-label="Community">
+      <p class="footer-h">Community</p>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/issues">Issues</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/discussions">Discussions</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/blob/main/CONTRIBUTING.md">Contributing</a>
+      <a href="https://github.com/sandrexa1111/threatveil-oss/security/policy">Security</a>
+    </nav>
+  </div>
+  <div class="wrap footer-base muted">Product names belong to their owners; no endorsement is implied.</div>
+</footer>
+</body>
+</html>

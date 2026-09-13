@@ -1,0 +1,58 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "change-assurance/v1",
+      "default": "change-assurance/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "state_id": {
+      "format": "uuid",
+      "title": "State Id",
+      "type": "string"
+    },
+    "release_id": {
+      "format": "uuid",
+      "title": "Release Id",
+      "type": "string"
+    },
+    "audience": {
+      "maxLength": 200,
+      "minLength": 3,
+      "title": "Audience",
+      "type": "string"
+    },
+    "expected_prior_epoch": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Expected Prior Epoch",
+      "type": "integer"
+    },
+    "request_nonce": {
+      "maxLength": 120,
+      "minLength": 12,
+      "title": "Request Nonce",
+      "type": "string"
+    },
+    "unknown_action": {
+      "default": "REQUIRE_APPROVAL",
+      "enum": [
+        "WARN",
+        "BLOCK",
+        "REQUIRE_APPROVAL"
+      ],
+      "title": "Unknown Action",
+      "type": "string"
+    }
+  },
+  "required": [
+    "state_id",
+    "release_id",
+    "audience",
+    "request_nonce"
+  ],
+  "title": "CaseInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

@@ -1,0 +1,205 @@
+{
+  "$defs": {
+    "ExactCandidate": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "enum": [
+            "application_version",
+            "model_version",
+            "git_commit"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        },
+        "digest": {
+          "pattern": "^[0-9a-f]{40,64}$",
+          "title": "Digest",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "version",
+        "digest"
+      ],
+      "title": "ExactCandidate",
+      "type": "object"
+    },
+    "FingerprintComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "type": {
+          "maxLength": 100,
+          "minLength": 1,
+          "pattern": "^[^:]+$",
+          "title": "Type",
+          "type": "string"
+        },
+        "id": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "digest": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Digest"
+        },
+        "provenance": {
+          "default": "UNKNOWN",
+          "enum": [
+            "DECLARED",
+            "OBSERVED",
+            "INFERRED",
+            "UNKNOWN"
+          ],
+          "title": "Provenance",
+          "type": "string"
+        },
+        "dependencies": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Dependencies",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "id"
+      ],
+      "title": "FingerprintComponent",
+      "type": "object"
+    },
+    "SystemFingerprint": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": "1.0",
+          "default": "1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "components": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FingerprintComponent"
+          },
+          "title": "Components",
+          "type": "array"
+        }
+      },
+      "title": "SystemFingerprint",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "change-assurance/v1",
+      "default": "change-assurance/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "system_id": {
+      "format": "uuid",
+      "title": "System Id",
+      "type": "string"
+    },
+    "environment_id": {
+      "format": "uuid",
+      "title": "Environment Id",
+      "type": "string"
+    },
+    "envelope_id": {
+      "format": "uuid",
+      "title": "Envelope Id",
+      "type": "string"
+    },
+    "candidate": {
+      "$ref": "#/$defs/ExactCandidate"
+    },
+    "fingerprint": {
+      "$ref": "#/$defs/SystemFingerprint"
+    },
+    "evidence_id": {
+      "anyOf": [
+        {
+          "format": "uuid",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Evidence Id"
+    },
+    "coverage": {
+      "maxLength": 2000,
+      "minLength": 10,
+      "title": "Coverage",
+      "type": "string"
+    },
+    "unknowns": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 100,
+      "title": "Unknowns",
+      "type": "array"
+    }
+  },
+  "required": [
+    "system_id",
+    "environment_id",
+    "envelope_id",
+    "candidate",
+    "fingerprint",
+    "coverage"
+  ],
+  "title": "StateInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

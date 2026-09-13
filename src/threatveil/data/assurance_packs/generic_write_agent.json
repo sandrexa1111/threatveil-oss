@@ -1,0 +1,46 @@
+{
+  "schema_version": "assurance-pack/v1",
+  "id": "generic_write_agent",
+  "version": "0.1.0",
+  "archetype": "GENERIC_WRITE",
+  "name": "Generic write agent",
+  "status": "DRAFT",
+  "author": "ThreatVeil",
+  "runnable": false,
+  "summary": "Any agent that can change records through tools: the approval, allowlist and human-confirmation claims almost every write agent needs.",
+  "compatibility": {
+    "sources": ["mcp", "agent_definition"],
+    "requires_live_source": false,
+    "environments": ["STAGING", "PRODUCTION"],
+    "note": "Written against declared tool catalogues and agent definitions. It assumes nothing about your domain."
+  },
+  "claims": [
+    {"template_id": "approval_required", "resource": "the governed record", "action": "update",
+     "declared_dependencies": ["permissions:approval"]},
+    {"template_id": "tool_allowlist", "resource": "tools", "action": "execute",
+     "declared_dependencies": ["permissions:tool-allowlist"]},
+    {"template_id": "privileged_action_requires_human", "resource": "privileged operations", "action": "execute",
+     "declared_dependencies": ["permissions:human-confirmation"]}
+  ],
+  "dependency_proposals": [
+    {"subject_pattern": "authorization/tools/*/approval_required", "maps_to": ["permissions:approval"],
+     "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The declared approval condition on a tool controls the approval this claim depends on."},
+    {"subject_pattern": "authorization/permissions/allow", "maps_to": ["permissions:tool-allowlist"],
+     "reason": "PERMISSION_SCOPE_MATCH",
+     "evidence": "The declared allow list is the allowlist this claim depends on."},
+    {"subject_pattern": "authorization/permissions/ask", "maps_to": ["permissions:human-confirmation"],
+     "reason": "PERMISSION_SCOPE_MATCH",
+     "evidence": "Tools requiring confirmation are the human-confirmation boundary this claim depends on."}
+  ],
+  "observer_requirements": [
+    {"resource": "the governed record", "system_of_record": "The database or API that durably holds the record",
+     "observed_effects": ["COMMITTED", "DENIED", "COMPENSATED", "UNKNOWN"], "correlation": "IDEMPOTENCY_KEY",
+     "note": "Must distinguish a committed write from an attempted one, and must never read absence as a denial unless it covers every commit."}
+  ],
+  "limitations": [
+    "Claims are declared, not verified: nothing in this pack establishes evidence for your system.",
+    "Dependency proposals are name correspondences that a reviewer must approve.",
+    "No observer is created: a qualified business-effect observer is yours to provide."
+  ]
+}

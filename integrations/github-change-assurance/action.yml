@@ -1,0 +1,58 @@
+name: ThreatVeil — Change Assurance
+description: >
+  Ask ThreatVeil what a proposed agent configuration change would break, and publish the
+  answer on the pull request. Read-only with respect to current clearance, and non-blocking
+  by default: it warns, it never fails the build unless you explicitly ask it to.
+inputs:
+  api-url:
+    description: ThreatVeil public API base URL (including /api/backend for the web relay).
+    required: true
+  api-token:
+    description: A scoped ThreatVeil API token. Store it as a repository secret.
+    required: true
+  system-id:
+    description: The protected system this configuration belongs to.
+    required: true
+  installation-id:
+    description: The ThreatVeil source (connector installation) this configuration belongs to.
+    required: true
+  file:
+    description: Path to the proposed configuration in the checked-out repository.
+    required: true
+  format:
+    description: >
+      Agent-definition format (manifest, claude_settings, mcp_json, claude_subagent, langgraph,
+      crewai). Leave empty to infer from the file path, or for a raw MCP catalogue.
+    required: false
+    default: ''
+  fail-on:
+    description: >
+      never (default), reproof (fail when claims would need fresh evidence) or unknown (also fail
+      when the impact cannot be established). ThreatVeil never blocks unless you set this.
+    required: false
+    default: 'never'
+outputs:
+  effect:
+    description: WOULD_REQUIRE_REPROOF, NO_CLAIM_AFFECTED, NO_CHANGE, NO_BASELINE, NO_CLAIMS or a declared-claim effect.
+    value: ${{ steps.propose.outputs.effect }}
+  conclusion:
+    description: The check conclusion ThreatVeil computed (success or neutral; never failure).
+    value: ${{ steps.propose.outputs.conclusion }}
+  assessment-id:
+    description: The recorded proposed-change assessment, for audit.
+    value: ${{ steps.propose.outputs.assessment-id }}
+runs:
+  using: composite
+  steps:
+    - id: propose
+      shell: bash
+      env:
+        TV_ACTION_API_URL: ${{ inputs.api-url }}
+        TV_ACTION_API_TOKEN: ${{ inputs.api-token }}
+        TV_ACTION_SYSTEM_ID: ${{ inputs.system-id }}
+        TV_ACTION_INSTALLATION_ID: ${{ inputs.installation-id }}
+        TV_ACTION_FILE: ${{ inputs.file }}
+        TV_ACTION_FORMAT: ${{ inputs.format }}
+        TV_ACTION_FAIL_ON: ${{ inputs.fail-on }}
+        TV_ACTION_SOURCE: ${{ github.action_path }}
+      run: node "$TV_ACTION_SOURCE/propose.mjs"

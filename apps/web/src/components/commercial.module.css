@@ -1,0 +1,49 @@
+.pricing { padding: 0 5vw 5rem; }
+.plans { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; }
+.plan { padding: 1.6rem 1.2rem; background: #fff; border: 1px solid var(--line-strong); border-radius: var(--r-lg); display: flex; flex-direction: column; min-width: 0; }
+.plan.selected { border-color: #294637; box-shadow: 0 0 0 1px #294637; }
+.plan .price { margin: 1.7rem 0 .8rem; font-size: clamp(1.7rem, 2.6vw, 3rem); letter-spacing: -.06em; line-height: 1.1; }
+.price small { font-size: .75rem; letter-spacing: 0; font-weight: 400; color: #687168; margin-left: .3rem; }
+.tagline { font-size: .9rem; line-height: 1.6; color: #58635b; min-height: 4.5em; }
+.plan ul { display: grid; gap: .85rem; list-style: none; padding: 1.5rem 0; margin: 0 0 auto; font-size: .8rem; line-height: 1.5; }
+.plan li { display: flex; align-items: start; gap: .5rem; }
+.plan li svg { flex-shrink: 0; margin-top: .2rem; }
+.plan a, .plan button { margin-top: 1rem; justify-content: center; white-space: normal; text-align: center; }
+.current { display: inline-block; font-size: .6rem; margin-left: .5rem; color: #36503d; }
+.note { font-size: .85rem; line-height: 1.8; color: #616960; margin: 1.2rem 0 1.6rem; max-width: 1000px; }
+.principles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; margin: 4rem 0 0; }
+.principles h3 { font-size: 1.5rem; margin-bottom: 1rem; }
+.principles p { color: #616960; line-height: 1.8; }
+.billing { display: grid; gap: 18px; }
+.billing > * { min-width: 0; }
+.section { display: grid; gap: 10px; min-width: 0; }
+.section > * { min-width: 0; }
+.sectionHead { display: flex; gap: 6px 14px; align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.sectionHead h2 { font-size: 13px; font-weight: 550; }
+.sectionHead span { font-size: 12px; color: var(--muted); }
+.billing .note { margin: 0; font-size: 12px; line-height: 1.6; color: var(--muted); }
+.billing section > h2 { margin: .6rem 0 1.2rem; }
+.billing .plans { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.account { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper); }
+.account h2 { margin: 0 0 3px; font-size: 17px; letter-spacing: -.02em; display: flex; gap: 8px; align-items: center; }
+.account p { color: var(--muted); font-size: 12.5px; }
+.meters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+.meter { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--paper); display: grid; gap: 6px; }
+.meter > span { font-size: 12px; color: var(--muted); }
+.meter strong { font-size: 19px; font-weight: 550; letter-spacing: -.02em; }
+.meter strong small { font-size: 12.5px; color: var(--muted); font-weight: 400; }
+.meter > small { line-height: 1.5; color: var(--muted); font-size: 11.5px; }
+.meter progress { width: 100%; height: 5px; accent-color: #375443; }
+.sandbox { border: 1px solid var(--line); border-radius: var(--r-md); background: var(--paper); padding: 9px 14px; }
+.sandbox summary { cursor: pointer; font-size: 12.5px; color: var(--muted); }
+.sandbox p { font-size: .85rem; line-height: 1.7; margin: 1rem 0; color: #616960; }
+.actions { display: flex; gap: .7rem; flex-wrap: wrap; }
+.promotion { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr; gap: 1rem; margin-top: 1.5rem; align-items: end; }
+.promotion label { display: grid; gap: .5rem; font-size: .8rem; }
+.promotion input, .promotion select { min-width: 0; width: 100%; }
+.events { display: grid; }
+.events > div { padding: 1rem 0; border-bottom: 1px solid var(--line); display: grid; grid-template-columns: 2fr 1fr auto; gap: 1rem; font-size: .8rem; line-height: 1.6; }
+.events strong { overflow-wrap: anywhere; font-weight: 500; }
+.events span, .events time { color: #616960; }
+@media (max-width: 1180px) { .plans { grid-template-columns: repeat(3,minmax(0,1fr)); } .billing .plans { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 720px) { .pricing { padding: 0 1.4rem 3rem; } .plans, .billing .plans, .principles, .meters { grid-template-columns: 1fr; } .tagline { min-height: auto; } .plan .price { font-size: 2.8rem; } .plan { padding: 1.5rem; } .account { align-items: start; flex-direction: column; } .events > div { grid-template-columns: 1fr; gap: .2rem; } .promotion { grid-template-columns: 1fr 1fr; } }

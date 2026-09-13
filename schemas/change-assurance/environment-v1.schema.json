@@ -1,0 +1,53 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "change-assurance/v1",
+      "default": "change-assurance/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "system_id": {
+      "format": "uuid",
+      "title": "System Id",
+      "type": "string"
+    },
+    "name": {
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "purpose": {
+      "default": "STAGING",
+      "enum": [
+        "SANDBOX",
+        "STAGING",
+        "PRODUCTION"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "boundary": {
+      "maxLength": 2000,
+      "minLength": 10,
+      "title": "Boundary",
+      "type": "string"
+    },
+    "owner": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Owner",
+      "type": "string"
+    }
+  },
+  "required": [
+    "system_id",
+    "name",
+    "boundary",
+    "owner"
+  ],
+  "title": "EnvironmentInput",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema"
+}

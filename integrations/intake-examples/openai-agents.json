@@ -1,0 +1,37 @@
+{
+  "spans": [
+    {
+      "id": "span-1",
+      "trace_id": "trace-1",
+      "parent_id": "span-agent",
+      "started_at": "2026-09-10T00:00:00Z",
+      "ended_at": "2026-09-10T00:00:01Z",
+      "span_data": {
+        "type": "function",
+        "name": "payment.update",
+        "output": "Committed successfully",
+        "input": "private secret"
+      }
+    },
+    {
+      "id": "span-2",
+      "trace_id": "trace-1",
+      "span_data": {
+        "type": "handoff",
+        "from_agent": "triage",
+        "to_agent": "payments"
+      }
+    },
+    {
+      "id": "span-3",
+      "trace_id": "trace-1",
+      "span_data": {
+        "type": "generation",
+        "model": "model-a",
+        "model_config": {
+          "temperature": 0
+        }
+      }
+    }
+  ]
+}

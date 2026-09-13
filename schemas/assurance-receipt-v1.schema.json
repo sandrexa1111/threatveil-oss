@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://threatveil.com/schemas/assurance-receipt-v1.schema.json",
+  "title": "ThreatVeil DSSE release receipt v1",
+  "description": "Cryptographic verification and externally trusted issuer/candidate checks are required in addition to schema validation. Decode payload as UTF-8 JSON and validate against $defs.statement.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["payloadType", "payload", "signatures"],
+  "properties": {
+    "payloadType": {"const": "application/vnd.in-toto+json"},
+    "payload": {"type": "string", "minLength": 1, "maxLength": 1000000},
+    "signatures": {
+      "type": "array", "minItems": 1, "maxItems": 32,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["sig"],
+        "properties": {"keyid": {"type": "string"}, "sig": {"type": "string", "minLength": 1}}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "action": {"enum": ["ALLOW", "WARN", "BLOCK"]},
+    "mode": {"enum": ["OBSERVE", "WARN", "BLOCK"]},
+    "text": {"type": "string", "minLength": 1, "maxLength": 1000},
+    "candidate": {
+      "type": "object", "required": ["type", "id", "version", "digest"],
+      "properties": {
+        "type": {"enum": ["git_commit", "application_version", "model_version"]},
+        "id": {"$ref": "#/$defs/text"}, "version": {"$ref": "#/$defs/text"},
+        "digest": {"type": "string", "pattern": "^([0-9a-f]{40}|[0-9a-f]{64})$"}
+      },
+      "allOf": [{"if": {"properties": {"type": {"enum": ["application_version", "model_version"]}}}, "then": {"properties": {"digest": {"$ref": "#/$defs/sha256"}}}}],
+      "description": "For git_commit, version must equal digest; enforced by the verifier."
+    },
+    "propertyResult": {
+      "type": "object",
+      "required": ["property_id", "evidence_id", "validity", "security_verdict", "task_outcome", "release_action", "reasons"],
+      "properties": {
+        "property_id": {"$ref": "#/$defs/text"}, "evidence_id": {"type": ["string", "null"]},
+        "validity": {"enum": ["STILL_VALID", "VOID", "UNKNOWN", "INCOMPATIBLE"]},
+        "security_verdict": {"enum": ["PASS", "FAIL", "INCONCLUSIVE", "UNKNOWN"]},
+        "task_outcome": {"enum": ["SUCCESS", "FAILURE", "UNKNOWN"]},
+        "release_action": {"$ref": "#/$defs/action"},
+        "reasons": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "required": ["id", "organization_id", "system_id", "evaluated_at", "candidate_fingerprint_digest", "candidate", "release_action", "underlying_action", "policy", "properties", "exceptions", "limitations"],
+      "properties": {
+        "id": {"$ref": "#/$defs/text"}, "organization_id": {"$ref": "#/$defs/text"},
+        "system_id": {"$ref": "#/$defs/text"},
+        "evaluated_at": {"type": "string", "format": "date-time"},
+        "candidate_fingerprint_digest": {"$ref": "#/$defs/sha256"},
+        "candidate": {"$ref": "#/$defs/candidate"},
+        "release_action": {"$ref": "#/$defs/action"},
+        "underlying_action": {"$ref": "#/$defs/action"},
+        "policy": {
+          "type": "object", "required": ["mode", "property_modes"],
+          "properties": {"mode": {"$ref": "#/$defs/mode"}, "property_modes": {"type": "object", "additionalProperties": {"$ref": "#/$defs/mode"}}}
+        },
+        "properties": {"type": "array", "maxItems": 500, "items": {"$ref": "#/$defs/propertyResult"}},
+        "exceptions": {"type": "array", "maxItems": 500, "items": {"type": "object"}},
+        "limitations": {"type": "array", "maxItems": 500, "items": {"type": "string"}}
+      }
+    },
+    "statement": {
+      "type": "object", "required": ["_type", "subject", "predicateType", "predicate"],
+      "properties": {
+        "_type": {"const": "https://in-toto.io/Statement/v1"},
+        "predicateType": {"const": "https://threatveil.com/attestation/release-decision/v1"},
+        "subject": {
+          "type": "array", "minItems": 1, "maxItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["name", "digest"],
+            "properties": {"name": {"type": "string", "pattern": "^threatveil:system:.+$"}, "digest": {"type": "object", "additionalProperties": false, "required": ["sha256"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}}}}
+          }
+        },
+        "predicate": {"$ref": "#/$defs/decision"}
+      }
+    }
+  }
+}

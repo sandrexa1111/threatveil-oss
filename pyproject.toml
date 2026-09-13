@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "threatveil"
+version = "0.1.0"
+license = "Apache-2.0"
+description = "Continuous security verification for autonomous systems"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "pydantic>=2.11,<3",
+  "pydantic-settings>=2.8,<3",
+  "sqlalchemy>=2.0.40,<3",
+  "psycopg[binary]>=3.2,<4",
+  "alembic>=1.15,<2",
+  "httpx>=0.28,<1",
+  "scipy>=1.15,<2",
+  "cryptography>=50.0.1,<51",
+  "firebase-admin>=6.7,<8",
+  "google-cloud-secret-manager>=2.23,<3",
+  "google-cloud-storage>=3,<4",
+  "google-cloud-run>=0.10,<1",
+  "google-cloud-tasks>=2.19,<3",
+  "stripe>=12,<15",
+  "openai>=1.75,<3",
+  "typer>=0.15,<1",
+  "jinja2>=3.1.6,<4",
+  "sentry-sdk[fastapi]>=2.25,<3",
+  "opentelemetry-api>=1.31,<2",
+  "pyjwt[crypto]>=2.10,<3",
+  "pyyaml>=6.0.2,<7",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.3,<10", "pytest-cov>=6,<8", "ruff>=0.11,<1", "respx>=0.22,<1"]
+
+[project.urls]
+Homepage = "https://threatveil.com"
+Repository = "https://github.com/sandrexa1111/threatveil-oss"
+Documentation = "https://github.com/sandrexa1111/threatveil-oss/tree/main/docs"
+Issues = "https://github.com/sandrexa1111/threatveil-oss/issues"
+
+[project.scripts]
+threatveil = "threatveil.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/threatveil"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "B", "S"]
+ignore = ["S101", "S311", "B008"]

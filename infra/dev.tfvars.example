@@ -1,0 +1,31 @@
+# Copy to an ignored dev.tfvars only after inventory/reuse review. No credentials here.
+project_id      = "replace-with-approved-project"
+region          = "europe-west1"
+environment     = "dev"
+deploy_services = false
+public_web_enabled = false
+# web_origin = "https://reviewed-threatveil-dev.example.com"
+# images = {
+#   python = "europe-west1-docker.pkg.dev/PROJECT/REPOSITORY/python@sha256:DIGEST"
+#   web    = "europe-west1-docker.pkg.dev/PROJECT/REPOSITORY/web@sha256:DIGEST"
+# }
+# operator_invokers = ["user:approved-operator@example.com"]
+# github_repository = "NEW-OWNER/NEW-REPOSITORY"
+# notification_channels = ["projects/PROJECT/notificationChannels/ID"]
+# github_app = {
+#   enabled = true
+#   app_id = "REVIEWED_NUMERIC_APP_ID"
+#   private_key_secret_id = "threatveil-dev-github-app-key"
+#   webhook_secret_id = "threatveil-dev-github-webhook"
+# }
+# api_secret_bindings = { TV_RECEIPT_SIGNING_PRIVATE_KEY = "threatveil-dev-receipt-signing" }
+# Revenue flags stay false until verified provider setup and explicit delivery approval.
+# IDs are existing secret container names; put secret values in Secret Manager only.
+# revenue_delivery = {
+#   resend_enabled    = false
+#   resend_secret_id  = "threatveil-dev-resend"
+#   email_from        = "invitations@reviewed-domain.example"
+#   hubspot_enabled   = false
+#   hubspot_secret_id = "threatveil-dev-hubspot"
+#   hubspot_owner_id  = "REVIEWED_NUMERIC_OWNER_ID"
+# }

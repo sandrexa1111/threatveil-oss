@@ -1,0 +1,25 @@
+name: Research question
+description: Challenge or explore the assurance model (evidence applicability, invalidation, authority, observers)
+labels: [research]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ThreatVeil is as much an argument as a codebase. Questions that could prove part of it wrong are welcome.
+  - type: textarea
+    id: question
+    attributes:
+      label: Question or hypothesis
+      description: For example, "a reviewed dependency mapping cannot capture effects that cross tool boundaries".
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Where it touches the model
+      description: Which stage (system, authority, claim, evidence, change, invalidation, re-verification, Gate, Passport) and any code or docs you looked at.
+  - type: textarea
+    id: test
+    attributes:
+      label: How it could be tested
+      description: A scenario, fixture or counterexample that would settle it.

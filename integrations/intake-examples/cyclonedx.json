@@ -1,0 +1,41 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.7",
+  "version": 1,
+  "components": [
+    {
+      "type": "application",
+      "name": "agent",
+      "bom-ref": "agent",
+      "version": "1"
+    },
+    {
+      "type": "machine-learning-model",
+      "name": "model-a",
+      "bom-ref": "model",
+      "version": "1",
+      "modelCard": {
+        "modelParameters": {
+          "task": "text-generation"
+        }
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "agent",
+      "dependsOn": [
+        "model"
+      ]
+    },
+    {
+      "ref": "model",
+      "dependsOn": []
+    }
+  ],
+  "compositions": [
+    {
+      "aggregate": "complete"
+    }
+  ]
+}

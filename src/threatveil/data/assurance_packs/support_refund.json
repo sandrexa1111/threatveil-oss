@@ -1,0 +1,49 @@
+{
+  "schema_version": "assurance-pack/v1",
+  "id": "support_refund",
+  "version": "0.1.0",
+  "archetype": "SUPPORT_REFUND",
+  "name": "Support and refund agent",
+  "status": "DRAFT",
+  "author": "ThreatVeil",
+  "runnable": false,
+  "summary": "A support agent that can refund money and message customers: the refund limit, approval and external-message claims, and the ledger observer that must witness a committed refund.",
+  "compatibility": {
+    "sources": ["mcp", "agent_definition"],
+    "requires_live_source": false,
+    "environments": ["STAGING", "PRODUCTION"],
+    "note": "Assumes refunds are recorded in a billing ledger you can read independently of the agent."
+  },
+  "claims": [
+    {"template_id": "refund_limit", "resource": "refunds", "action": "refund",
+     "declared_dependencies": ["permissions:refund-limit"]},
+    {"template_id": "approval_required", "resource": "refunds", "action": "refund",
+     "declared_dependencies": ["permissions:approval"]},
+    {"template_id": "external_message_approval", "resource": "customer messages", "action": "send",
+     "declared_dependencies": ["permissions:message-approval"]}
+  ],
+  "dependency_proposals": [
+    {"subject_pattern": "authorization/tools/refund*/approval_required", "maps_to": ["permissions:approval"],
+     "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The refund tool's declared approval condition controls the approval the refund claims depend on."},
+    {"subject_pattern": "authorization/tools/refund*/max_amount", "maps_to": ["permissions:refund-limit"],
+     "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The declared maximum amount on the refund tool is the limit this claim depends on."},
+    {"subject_pattern": "authorization/tools/*message*/approval_required",
+     "maps_to": ["permissions:message-approval"], "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The messaging tool's declared approval condition controls external message approval."}
+  ],
+  "observer_requirements": [
+    {"resource": "refunds", "system_of_record": "The billing ledger that records committed refunds",
+     "observed_effects": ["COMMITTED", "DENIED", "COMPENSATED", "UNKNOWN"], "correlation": "IDEMPOTENCY_KEY",
+     "note": "A refund that was issued and then reversed is still a refund that committed."},
+    {"resource": "customer messages", "system_of_record": "The messaging provider's delivery log",
+     "observed_effects": ["DISPATCHED", "COMMITTED", "UNKNOWN"], "correlation": "CORRELATION_ID",
+     "note": "Delivery is the committed effect; a queued message is not yet delivered."}
+  ],
+  "limitations": [
+    "This is ThreatVeil's leading hypothesis for a first archetype, not a validated pack.",
+    "Refund partials, currency conversion and chargebacks are out of scope.",
+    "Claims are declared until an approved executable check with a qualified observer is bound to them."
+  ]
+}

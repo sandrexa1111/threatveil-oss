@@ -1,0 +1,14 @@
+{
+  "name": "threatveil",
+  "private": true,
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.19.0",
+  "scripts": {
+    "dev": "pnpm --filter @threatveil/web dev",
+    "build": "pnpm --filter @threatveil/web build",
+    "typecheck": "pnpm --filter @threatveil/web typecheck",
+    "test:web": "pnpm --filter @threatveil/web test",
+    "build:sdk": "pnpm --filter @threatveil/sdk build",
+    "test:sdk": "pnpm build:sdk && pnpm --filter @threatveil/sdk test"
+  }
+}

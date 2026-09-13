@@ -1,0 +1,36 @@
+{
+  "server_id": "payments",
+  "protocol_version": "2025-11-25",
+  "complete": true,
+  "authorization": {
+    "required_scopes": [
+      "payments:write"
+    ]
+  },
+  "tools": [
+    {
+      "name": "update",
+      "description": "Update approved payment",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false
+      }
+    },
+    {
+      "name": "read",
+      "inputSchema": {
+        "type": "object"
+      }
+    }
+  ]
+}

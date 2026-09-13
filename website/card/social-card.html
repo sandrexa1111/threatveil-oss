@@ -1,0 +1,49 @@
+<!doctype html>
+<!-- Source for og.png (1200x630) and docs/images/social-preview.png (1280x640).
+     Render with headless Chrome at the target window size; see Makefile target `website-cards`. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; }
+  body {
+    background: radial-gradient(120vw 90vh at 88% 110%, #1b3d33 0%, #0c1714 58%);
+    color: #e8efec; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    display: flex; flex-direction: column; justify-content: space-between; padding: 5.4vw 6vw; box-sizing: border-box;
+  }
+  .brand { display: flex; align-items: center; gap: 1.2vw; font-weight: 700; font-size: 2.2vw; letter-spacing: -.01em; }
+  .brand svg { width: 3vw; height: 3vw; }
+  .tag { margin-left: auto; font: 600 1.05vw/1 ui-monospace, Menlo, monospace; letter-spacing: .12em; color: #93a19b;
+         border: 1px solid #2a4038; padding: .8vw 1.1vw; border-radius: 99px; }
+  h1 { font-size: 5.1vw; line-height: 1.04; letter-spacing: -.035em; margin: 0 0 1.6vw; max-width: 16ch; font-weight: 750; }
+  p { font-size: 1.9vw; color: #b9c8c2; margin: 0; max-width: 46ch; }
+  .chain { display: flex; align-items: center; gap: 1vw; font: 600 1.25vw/1 ui-monospace, Menlo, monospace; letter-spacing: .06em; }
+  .chip { padding: 1vw 1.4vw; border-radius: .8vw; border: 1px solid #2a4038; background: #13241f; color: #cfe7dc; }
+  .chip.change { border-color: #6b3526; background: #2a1a15; color: #f0b39f; }
+  .chip.q { background: #cfe7dc; color: #0c1714; border-color: #cfe7dc; }
+  .arrow { color: #5f7a70; }
+  .foot { display: flex; justify-content: space-between; align-items: flex-end; }
+  .url { font: 500 1.2vw/1 ui-monospace, Menlo, monospace; color: #93a19b; }
+</style>
+</head>
+<body>
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2.5 4 7v8.2c0 7.2 5 12.9 12 14.8 7-1.9 12-7.6 12-14.8V7L16 2.5Z" fill="none" stroke="#e8efec" stroke-width="2.2" stroke-linejoin="round"/><path d="m10.5 12 5.5 9.5 5.5-9.5" fill="none" stroke="#e8efec" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    ThreatVeil
+    <span class="tag">OPEN SOURCE · APACHE-2.0</span>
+  </div>
+  <div>
+    <h1>Security evidence expires when the system changes.</h1>
+    <p>Open-source assurance infrastructure for changing autonomous AI systems.</p>
+  </div>
+  <div class="foot">
+    <div class="chain">
+      <span class="chip">SYSTEM</span><span class="arrow">→</span>
+      <span class="chip change">CHANGE</span><span class="arrow">→</span>
+      <span class="chip">EVIDENCE</span><span class="arrow">→</span>
+      <span class="chip q">CURRENT?</span>
+    </div>
+    <span class="url">threatveil.com</span>
+  </div>
+</body>
+</html>

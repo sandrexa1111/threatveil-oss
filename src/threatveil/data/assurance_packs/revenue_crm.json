@@ -1,0 +1,46 @@
+{
+  "schema_version": "assurance-pack/v1",
+  "id": "revenue_crm",
+  "version": "0.1.0",
+  "archetype": "REVENUE_CRM",
+  "name": "Revenue and CRM agent",
+  "status": "DRAFT",
+  "author": "ThreatVeil",
+  "runnable": false,
+  "summary": "An agent working inside customer records and pipeline: tenant isolation, no cross-tenant write, and approval before anything reaches a customer.",
+  "compatibility": {
+    "sources": ["mcp", "agent_definition"],
+    "requires_live_source": false,
+    "environments": ["STAGING", "PRODUCTION"],
+    "note": "Assumes the CRM records which tenant or account each record belongs to, readable independently of the agent."
+  },
+  "claims": [
+    {"template_id": "tenant_isolation", "resource": "customer records", "action": "read",
+     "declared_dependencies": ["permissions:tenant-boundary"]},
+    {"template_id": "no_cross_tenant_write", "resource": "customer records", "action": "update",
+     "declared_dependencies": ["permissions:tenant-boundary"]},
+    {"template_id": "external_message_approval", "resource": "customer messages", "action": "send",
+     "declared_dependencies": ["permissions:message-approval"]}
+  ],
+  "dependency_proposals": [
+    {"subject_pattern": "authorization/tools/*/tenant_bound", "maps_to": ["permissions:tenant-boundary"],
+     "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The declared tenant binding on a tool controls the tenant boundary these claims depend on."},
+    {"subject_pattern": "authorization/*/tenants", "maps_to": ["permissions:tenant-boundary"],
+     "reason": "PERMISSION_SCOPE_MATCH",
+     "evidence": "The declared tenant scope governs which tenants the agent may reach."},
+    {"subject_pattern": "authorization/tools/*email*/approval_required",
+     "maps_to": ["permissions:message-approval"], "reason": "SCHEMA_FIELD_MATCH",
+     "evidence": "The outbound email tool's declared approval condition controls external message approval."}
+  ],
+  "observer_requirements": [
+    {"resource": "customer records", "system_of_record": "The CRM's own record store",
+     "observed_effects": ["COMMITTED", "DENIED", "UNKNOWN"], "correlation": "IDEMPOTENCY_KEY",
+     "note": "The observer must read the tenant column of the committed row, not the request the agent sent."}
+  ],
+  "limitations": [
+    "An unvalidated hypothesis: no customer has confirmed this archetype yet.",
+    "Record-level sharing rules and field-level permissions are out of scope.",
+    "Claims are declared until an approved executable check with a qualified observer is bound to them."
+  ]
+}

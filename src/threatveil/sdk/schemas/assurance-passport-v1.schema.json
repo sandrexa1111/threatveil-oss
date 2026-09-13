@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://threatveil.com/schemas/assurance-passport/v1",
+  "title": "ThreatVeil Current Assurance Passport (signed predicate)",
+  "description": "A portable representation of one bounded current assurance case. Carried as the predicate of a DSSE/in-toto statement with predicateType https://threatveil.com/attestation/assurance-passport/v1. Not a certification or trust score. Authenticity is offline; current status is a separate online check.",
+  "type": "object",
+  "required": ["schema_version", "passport_id", "issuer", "signature_profile", "algorithm", "issued_at", "expires_at", "organization", "system", "environment", "state", "authority", "clearance", "claims", "limitations", "not_claims"],
+  "properties": {
+    "schema_version": {"const": "threatveil-assurance-passport/v1"},
+    "passport_id": {"type": "string"},
+    "issuer": {"type": "string", "minLength": 1, "description": "Configured issuer identity. Verify it against the trust directory you obtained independently."},
+    "signature_profile": {"const": "dsse-in-toto-ed25519/v1"},
+    "algorithm": {"const": "Ed25519"},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "audience": {"type": "string"},
+    "disclosure": {"enum": ["STANDARD", "INTERNAL"], "description": "STANDARD withholds internal identifiers, resource names and interface names."},
+    "withheld": {"type": "array", "items": {"type": "string"}},
+    "organization": {"type": "object", "required": ["name"]},
+    "system": {"type": "object", "required": ["name"], "properties": {"synthetic": {"type": "boolean"}, "reference": {"type": "string", "pattern": "^[0-9a-f]{64}$", "description": "Stable pseudonymous system reference, present in every disclosure profile."}}},
+    "environment": {"type": "object", "required": ["name", "purpose"]},
+    "state": {"type": "object", "required": ["digest"], "properties": {"digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}},
+    "authority": {"type": "object", "required": ["grants_permissions", "consequential_actions"], "properties": {"grants_permissions": {"const": false}, "consequential_actions": {"type": "array", "items": {"type": "object", "required": ["action", "label", "assurance"]}}}},
+    "clearance": {"type": "object", "required": ["state", "label"], "properties": {"state": {"enum": ["CLEARED", "NEEDS_REASSESSMENT", "NOT_CLEARED", "REVOKED", "NOT_ESTABLISHED"]}}},
+    "claims": {"type": "object", "required": ["supported", "needs_fresh_evidence", "failed", "unknown"], "additionalProperties": {"type": "array"}},
+    "evidence_summary": {"type": "object"},
+    "support_digest": {"type": ["string", "null"]},
+    "status_check": {"type": "object"},
+    "verification": {"type": "object"},
+    "limitations": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+    "not_claims": {"type": "array", "items": {"type": "string"}, "minItems": 1}
+  }
+}

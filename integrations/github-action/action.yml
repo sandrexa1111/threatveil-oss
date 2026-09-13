@@ -1,0 +1,14 @@
+name: ThreatVeil Verify
+description: Run a registered security assurance plan using GitHub OIDC and block without exact-candidate evidence.
+inputs:
+  api-url:
+    description: ThreatVeil public API base URL (including /api/backend for the web relay).
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        TV_ACTION_API_URL: ${{ inputs.api-url }}
+        TV_ACTION_SOURCE: ${{ github.action_path }}
+      run: node "$TV_ACTION_SOURCE/verify.mjs"

@@ -1,0 +1,14 @@
+{
+  "operational_owner": "",
+  "images": {},
+  "previous_images": {},
+  "notification_channels": [],
+  "monthly_cloud_budget_usd": 0,
+  "budget_alert_reference": "",
+  "pilot_verification_budget": 0,
+  "signing_trust_reference": "",
+  "rollback_runbook": "docs/deployment/GCP.md",
+  "recovery_runbook": "docs/deployment/GCP.md",
+  "retention_scope_accepted": false,
+  "required_providers": ["github"]
+}

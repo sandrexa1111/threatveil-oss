@@ -1,0 +1,106 @@
+# Reference deployment workflow for the private GCP design in infra/ (never applied; see
+# docs/KNOWN_LIMITATIONS.md §13). Manual dispatch only. It requires a maintainer-configured
+# `gcp-dev` environment and repository variables, and does nothing in forks or by default.
+name: GCP dev delivery
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: 'Update existing reviewed dev resources after tests and image scanning'
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+  publish:
+    needs: verify
+    if: github.ref == 'refs/heads/main'
+    environment: gcp-dev
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      python_image: ${{ steps.images.outputs.python_image }}
+      web_image: ${{ steps.images.outputs.web_image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: {persist-credentials: false}
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_BUILD_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: Publish immutable build references
+        id: images
+        env:
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          IMAGE_REPOSITORY: ${{ vars.GCP_IMAGE_REPOSITORY }}
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ vars.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ vars.NEXT_PUBLIC_FIREBASE_APP_ID }}
+        run: |
+          test -n "$GCP_REGION" && test -n "$IMAGE_REPOSITORY"
+          test -n "$NEXT_PUBLIC_FIREBASE_API_KEY" && test -n "$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN" && test -n "$NEXT_PUBLIC_FIREBASE_PROJECT_ID" && test -n "$NEXT_PUBLIC_FIREBASE_APP_ID"
+          gcloud auth configure-docker "$GCP_REGION-docker.pkg.dev" --quiet
+          version="$GITHUB_SHA-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          docker build -f Dockerfile.python -t "$IMAGE_REPOSITORY/python:$version" .
+          docker build -f Dockerfile.web --build-arg NEXT_PUBLIC_FIREBASE_API_KEY --build-arg NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN --build-arg NEXT_PUBLIC_FIREBASE_PROJECT_ID --build-arg NEXT_PUBLIC_FIREBASE_APP_ID -t "$IMAGE_REPOSITORY/web:$version" .
+          python3 infra/scripts/smoke_images.py --python-image "$IMAGE_REPOSITORY/python:$version" --web-image "$IMAGE_REPOSITORY/web:$version"
+          python3 infra/scripts/install_security_tools.py
+          mkdir -p .local/published-sbom
+          .local/security-bin/syft "$IMAGE_REPOSITORY/python:$version" -o spdx-json=.local/published-sbom/python.spdx.json
+          .local/security-bin/syft "$IMAGE_REPOSITORY/web:$version" -o spdx-json=.local/published-sbom/web.spdx.json
+          python3 infra/scripts/image_security_gate.py --image "$IMAGE_REPOSITORY/python:$version" --output-dir .local/published-sbom/python-gate
+          python3 infra/scripts/include_native_sbom.py --sbom .local/published-sbom/python.spdx.json --native .local/published-sbom/python-gate/sqlite.cdx.json
+          .local/security-bin/trivy image --scanners vuln --severity HIGH,CRITICAL --exit-code 1 "$IMAGE_REPOSITORY/web:$version"
+          docker push "$IMAGE_REPOSITORY/python:$version"
+          docker push "$IMAGE_REPOSITORY/web:$version"
+          python_digest=$(gcloud artifacts docker images describe "$IMAGE_REPOSITORY/python:$version" --format='value(image_summary.digest)')
+          web_digest=$(gcloud artifacts docker images describe "$IMAGE_REPOSITORY/web:$version" --format='value(image_summary.digest)')
+          echo "python_image=$IMAGE_REPOSITORY/python@$python_digest" >> "$GITHUB_OUTPUT"
+          echo "web_image=$IMAGE_REPOSITORY/web@$web_digest" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: exact-dev-image-sbom
+          path: .local/published-sbom/**/*.json
+          retention-days: 14
+  deploy:
+    needs: publish
+    if: inputs.deploy && github.ref == 'refs/heads/main'
+    environment: gcp-dev
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
+      - name: Migrate and update existing dev resources
+        env:
+          GCP_PROJECT: ${{ vars.GCP_PROJECT }}
+          GCP_REGION: ${{ vars.GCP_REGION }}
+          SERVICE_PREFIX: ${{ vars.GCP_SERVICE_PREFIX }}
+          PYTHON_IMAGE: ${{ needs.publish.outputs.python_image }}
+          WEB_IMAGE: ${{ needs.publish.outputs.web_image }}
+        run: |
+          test -n "$GCP_PROJECT" && test -n "$GCP_REGION" && test -n "$SERVICE_PREFIX"
+          test "${PYTHON_IMAGE#*@sha256:}" != "$PYTHON_IMAGE"
+          test "${WEB_IMAGE#*@sha256:}" != "$WEB_IMAGE"
+          gcloud run jobs update "$SERVICE_PREFIX-migration" --project "$GCP_PROJECT" --region "$GCP_REGION" --image "$PYTHON_IMAGE" --quiet
+          gcloud run jobs execute "$SERVICE_PREFIX-migration" --project "$GCP_PROJECT" --region "$GCP_REGION" --wait --quiet
+          gcloud run jobs update "$SERVICE_PREFIX-runner" --project "$GCP_PROJECT" --region "$GCP_REGION" --image "$PYTHON_IMAGE" --quiet
+          for service in broker launcher api; do
+            gcloud run services update "$SERVICE_PREFIX-$service" --project "$GCP_PROJECT" --region "$GCP_REGION" --image "$PYTHON_IMAGE" --quiet
+          done
+          gcloud run services update "$SERVICE_PREFIX-web" --project "$GCP_PROJECT" --region "$GCP_REGION" --image "$WEB_IMAGE" --quiet
+          echo 'Dev revisions updated. Cloud acceptance, exact-candidate replay and IAM denial probes remain required before staging.' >> "$GITHUB_STEP_SUMMARY"
