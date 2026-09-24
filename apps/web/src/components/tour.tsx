@@ -11,7 +11,7 @@
  */
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { api, str } from '@/lib/api';
 import { arr, type Fields } from './product';
@@ -88,19 +88,23 @@ export function Tour({ctx}: {ctx: WorkspaceContext}) {
 
   const update = useCallback((value: Saved | null) => { write(value); setSaved(value); }, []);
 
-  // Start from ?tour=start, or resume a tour already in progress.
+  // Start from ?tour=start, or resume a tour already in progress. The start branch must run
+  // exactly once: it both fetches and replaces the URL, and re-running it while the replace is
+  // still in flight would refetch in a loop and cancel navigation the tour itself just started.
+  const started = useRef(false);
   useEffect(() => {
     if (params.get('tour') === 'start') {
+      if (started.current) return;
+      started.current = true;
       api<Fields>('/home').then(home => {
         const example = arr(home.systems).find(system => system.synthetic);
         update({step: 0, systemId: str(example?.id, '')});
       }).catch(() => update({step: 0, systemId: ''}));
       router.replace(pathname, {scroll: false});
-    } else if (!saved) {
-      const resumed = read();
-      if (resumed) setSaved(resumed);
+      return;
     }
-  }, [params, pathname, router, saved, update]);
+    setSaved(current => current ?? read());
+  }, [params, pathname, router, update]);
 
   const step = saved ? STEPS[saved.step] : undefined;
 
