@@ -1,8 +1,7 @@
 # ThreatVeil
 
-**Open-source assurance infrastructure for changing autonomous AI systems.**
-
-Know which security conclusions still hold after your AI system changes.
+**Your AI agent passed its security review. Then it changed. ThreatVeil tells you which of those
+conclusions still hold.**
 
 [![CI](https://github.com/sandrexa1111/threatveil-oss/actions/workflows/ci.yml/badge.svg)](https://github.com/sandrexa1111/threatveil-oss/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -11,12 +10,27 @@ Know which security conclusions still hold after your AI system changes.
 ![Node 24](https://img.shields.io/badge/node-24-5FA04E.svg)
 ![Status: experimental](https://img.shields.io/badge/status-experimental-orange.svg)
 
-![The ThreatVeil assurance lifecycle: evidence bound to a state, invalidated by changes through reviewed mappings, re-verified, and exposed through the Gate and Passport](docs/images/assurance-lifecycle.svg)
+![A synthetic finance agent is cleared on three claims; an approval requirement is relaxed outside code; ThreatVeil marks one claim as needing fresh evidence while two still hold, and the previous clearance becomes superseded](docs/images/demo.gif)
 
-ThreatVeil explores a harder question than whether an AI agent passed a security test: **whether
-the evidence behind that conclusion still applies after the system changes.** It is an
-experimental platform, released as open source after beginning as a commercial startup
-experiment. It is not production-proven. See [what works today](#what-works-today).
+Autonomous agents get security-reviewed once, then keep changing: a tool gateway stops requiring
+approval, an MCP server adds a tool, a permission rule is relaxed. ThreatVeil binds each piece of
+security evidence to the **exact system state** it was produced on, so a change invalidates only
+the claims it actually reaches, and you get *"1 claim needs fresh evidence, 2 still hold"* instead
+of *"re-test everything"*.
+
+**See it in five minutes.** Docker only. No cloud account, API key or GPU:
+
+```sh
+git clone https://github.com/sandrexa1111/threatveil-oss.git
+cd threatveil-oss
+make demo
+```
+
+Experimental research software from a closed startup, released under Apache-2.0 with its internal
+audit attached. Not production-proven: see [what works today](#what-works-today) and
+[known limitations](docs/KNOWN_LIMITATIONS.md).
+
+![The ThreatVeil assurance lifecycle: evidence bound to a state, invalidated by changes through reviewed mappings, re-verified, and exposed through the Gate and Passport](docs/images/assurance-lifecycle.svg)
 
 ## Why ThreatVeil exists
 
@@ -59,6 +73,31 @@ In a few minutes it drives the real API through this story and verifies every si
 | 6. Passport | Verifies as **authentic**, then reads **superseded** after a further change |
 
 Restoration in step 4 works on this fixture only; generic restoration is roadmap item P0.
+
+## "Isn't this just diffing configs?"
+
+Diffing tells you *what changed*. The hard part is *which earlier conclusion stopped being true*,
+and proving the rest still are. That needs a model of claims, evidence and state that a diff does
+not have.
+
+| | A config diff / LLM summary | A test or eval suite | ThreatVeil |
+|---|---|---|---|
+| Sees a change | Yes | No | Yes |
+| Knows which security claim the change reaches | No | No | Yes, through reviewed dependency mappings |
+| Knows which earlier evidence stopped applying | No | No | Yes: evidence is bound to a state fingerprint and expires |
+| Distinguishes "blocked the bad thing" from "broke everything" | No | Sometimes | Required: `SECURITY PASS + USEFUL TASK FAILURE = NOT CLEARED` |
+| Answer survives being shared with a third party | No | No | Signed Passport: authentic forever, current recomputed on request |
+| Says "I don't know" when it cannot tell | No, it guesses | n/a | Yes, and `UNKNOWN` is never cleared |
+
+Three consequences fall out of that design:
+
+- **A passing test is not a standing conclusion.** Re-running everything on every change is the
+  honest alternative, and it is what teams do when they have no mapping from changes to claims.
+- **Nothing imported becomes evidence.** Declared configuration, traces, model output and
+  self-reports are inputs, never proof. Only qualified observations count.
+- **Being wrong is worse than being loud.** Where semantics are unreviewed, ThreatVeil answers
+  `UNKNOWN_IMPACT` instead of guessing, which makes it noisier and makes its positive answers mean
+  something.
 
 ## Quick start
 
