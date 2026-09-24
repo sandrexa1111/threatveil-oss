@@ -23,7 +23,7 @@ REPO = "https://github.com/sandrexa1111/threatveil-oss"
 # Fixed so that a rebuild without content changes produces identical files.
 SITE_UPDATED = "2026-09-14"
 DOC_IMAGES = ["assurance-lifecycle.svg", "architecture.svg", "system-cleared.png",
-              "change-impact.png", "proposed-change.png", "passport-share.png"]
+              "change-impact.png", "proposed-change.png", "passport-share.png", "demo.gif"]
 
 
 def front_matter(text):

@@ -68,6 +68,7 @@ p { margin: 0 0 16px; color: var(--ink-2); }
 
 .hero { padding-block: 72px 56px; }
 .hero-figure { margin: 48px 0 0; }
+.hero-figure figcaption { font-size: .8rem; color: var(--muted); margin-top: 10px; }
 .hero-figure img, .diagram img { border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); width: 100%; }
 
 .cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
