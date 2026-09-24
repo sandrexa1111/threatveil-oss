@@ -87,6 +87,9 @@ jobs:
           done
           curl --fail --silent http://127.0.0.1:8000/healthz >/dev/null
           curl --fail --silent http://127.0.0.1:3000/login >/dev/null
+          # The web app runs in dev mode here; compile /app once so the first test does not
+          # pay for it inside a navigation timeout.
+          curl --silent --output /dev/null http://127.0.0.1:3000/app || true
       - run: pnpm test:web
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: failure()
